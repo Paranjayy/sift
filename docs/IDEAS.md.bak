@@ -1,4 +1,4 @@
-# IDEAS.md — All the Kewl Shit for sift
+# IDEAS.md — All the Kewl Shit for Organize
 
 Everything we want to build eventually. MVP first, then iterate. Nothing here is forgotten.
 
@@ -16,10 +16,10 @@ Everything we want to build eventually. MVP first, then iterate. Nothing here is
 
 ## Undo System (v1.1)
 
-- Before moving files, create a manifest: `.sift-manifest.json`
+- Before moving files, create a manifest: `.organize-manifest.json`
 - Manifest records: original path, new path, timestamp
-- `sift undo` command reverts the last operation
-- `sift undo --all` reverts everything in current session
+- `organize undo` command reverts the last operation
+- `organize undo --all` reverts everything in current session
 - Clean old manifests after 30 days
 
 ---
@@ -35,7 +35,7 @@ Everything we want to build eventually. MVP first, then iterate. Nothing here is
 
 ## Watch Mode (v1.3)
 
-- `sift watch ~/Downloads` — monitors folder continuously
+- `organize watch ~/Downloads` — monitors folder continuously
 - New files auto-sorted based on rules
 - Debounce (wait 2s for file to finish downloading)
 - Notification when files are moved (macOS notification center)
@@ -44,7 +44,7 @@ Everything we want to build eventually. MVP first, then iterate. Nothing here is
 
 ## Batch Mode (v1.2)
 
-- `sift batch ~/Desktop ~/Downloads ~/Documents`
+- `organize batch ~/Desktop ~/Downloads ~/Documents`
 - Process multiple folders in sequence
 - Summary report at the end
 
@@ -52,15 +52,15 @@ Everything we want to build eventually. MVP first, then iterate. Nothing here is
 
 ## Config Profiles (v1.3)
 
-- `sift --profile screenshots` — use a specific config
+- `organize --profile screenshots` — use a specific config
 - Profiles for different workflows: Downloads cleanup, project archiving, etc.
-- `sift profile list` / `sift profile create`
+- `organize profile list` / `organize profile create`
 
 ---
 
 ## Plugin System (v2.0)
 
-- Plugin interface for custom processors
+- Go plugin interface for custom processors
 - Hook points: pre-scan, post-scan, pre-move, post-move
 - Example plugins:
   - Image EXIF sorter (sort by date taken)
@@ -82,7 +82,7 @@ Everything we want to build eventually. MVP first, then iterate. Nothing here is
 - Dark theme (default)
 - Light theme
 - Catppuccin, Dracula, Nord support
-- `sift --theme catppuccin`
+- `organize --theme catppuccin`
 
 ### File Preview
 - Image thumbnails (using `viu` or `sixel` if terminal supports)
@@ -105,8 +105,8 @@ Everything we want to build eventually. MVP first, then iterate. Nothing here is
 - Size breakdown in stats: "Images: 2.3GB, Videos: 15GB, Documents: 500MB"
 
 ### Date-Based Sorting
-- `sift --by-date` — group by month/year
-- `sift --by-date --format "2026/08"` — custom date format
+- `organize --by-date` — group by month/year
+- `organize --by-date --format "2026/08"` — custom date format
 
 ---
 
@@ -115,10 +115,10 @@ Everything we want to build eventually. MVP first, then iterate. Nothing here is
 ### macOS Integration
 - `open .` equivalent — open organized folder in Finder
 - Spotlight integration — indexed folders appear in Spotlight
-- Shortcuts.app integration — run sift from Apple Shortcuts
+- Shortcuts.app integration — run organize from Apple Shortcuts
 
 ### CLI Integration
-- Pipe support: `ls | sift --stdin`
+- Pipe support: `ls | organize --stdin`
 - FZF integration for folder selection
 - Shell completions (bash, zsh, fish)
 
@@ -126,7 +126,7 @@ Everything we want to build eventually. MVP first, then iterate. Nothing here is
 
 ## Monetization / Distribution (Later)
 
-- Homebrew tap: `brew install sift-tui/sift`
+- Homebrew tap: `brew install organize-tui/organize`
 - `curl` installer script
 - GitHub releases with auto-build for all platforms
 - AUR package for Arch Linux
@@ -140,8 +140,8 @@ Everything we want to build eventually. MVP first, then iterate. Nothing here is
 - Sound effects (optional, via terminal bell)
 - Easter egg: if you try to organize `/`, it shows a warning meme
 - Achievement system: "Organized 1000 files!", "First undo!", "Zero duplicates!"
-- `sift --retro` — green-on-black CRT terminal aesthetic
-- `sift --minimal` — ultra-clean, no colors, just text
+- `organize --retro` — green-on-black CRT terminal aesthetic
+- `organize --minimal` — ultra-clean, no colors, just text
 
 ---
 

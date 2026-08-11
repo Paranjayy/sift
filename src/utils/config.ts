@@ -3,7 +3,7 @@ import * as path from 'path';
 import * as os from 'os';
 import { OrganizeConfig, GroupingMode, CustomRule } from '../types';
 
-const CONFIG_DIR = path.join(os.homedir(), '.config', 'organize');
+const CONFIG_DIR = path.join(os.homedir(), '.config', 'sift');
 const CONFIG_FILE = path.join(CONFIG_DIR, 'config.yaml');
 
 const DEFAULT_CONFIG: OrganizeConfig = {

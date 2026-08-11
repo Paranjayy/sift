@@ -1,10 +1,10 @@
 {
-  "name": "sift",
+  "name": "organize-tui",
   "version": "0.1.0",
-  "description": "Sift through files, organize into folders. Terminal file curator.",
+  "description": "Hazel, but in your terminal. A TUI file organizer.",
   "main": "dist/main.js",
   "bin": {
-    "sift": "dist/main.js"
+    "organize": "dist/main.js"
   },
   "scripts": {
     "dev": "tsx src/main.tsx",
@@ -13,7 +13,7 @@
     "typecheck": "tsc --noEmit",
     "test": "echo \"no tests yet\""
   },
-  "keywords": ["tui", "file-organizer", "terminal", "cli", "macos", "sift"],
+  "keywords": ["tui", "file-organizer", "terminal", "cli", "macos"],
   "author": "paranjay",
   "license": "MIT",
   "type": "module",

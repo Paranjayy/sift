@@ -1,12 +1,12 @@
-# Organize — Terminal File Curator
+# sift — Terminal File Curator
 
 ## Overview
 
-A full-screen TUI application that scans a selected folder, groups files by extension or category, shows a preview of the proposed reorganization, and on confirmation creates folders and moves files. Built in Go with the Charm ecosystem (Bubbletea + Lipgloss + Bubbles).
+A full-screen TUI application that scans a selected folder, groups files by extension or category, shows a preview of the proposed reorganization, and on confirmation creates folders and moves files. Built with TypeScript + Ink.
 
-**Repo name:** `organize`
-**Binary name:** `organize`
-**Tagline:** "Hazel, but in your terminal."
+**Repo:** `sift`
+**Binary:** `sift`
+**Tagline:** "Sift through the mess."
 
 ---
 
@@ -14,44 +14,38 @@ A full-screen TUI application that scans a selected folder, groups files by exte
 
 | Component | Choice | Why |
 |-----------|--------|-----|
-| Language | Go 1.22+ | Single binary, fast file ops, cross-compilation |
-| TUI Framework | Bubbletea v2 | Elm architecture, battle-tested, great docs |
-| Styling | Lipgloss | Terminal CSS, beautiful themes |
-| Components | Bubbles | Text input, viewport, list, help |
-| Config | Viper + YAML | Standard Go config, supports `~/.config/organize/` |
-| File Ops | `os` + `filepath` | Native Go, no deps |
+| Language | TypeScript | Type safety, great DX |
+| TUI Framework | Ink v7 | React-based, flexbox layout, battle-tested |
+| Styling | Ink Box/Text | Built-in terminal styling |
+| Config | YAML | Human-readable, easy to edit |
+| File Ops | Node.js `fs` | Native, no deps |
 
 ---
 
 ## Architecture
 
 ```
-organize/
-├── cmd/organize/
-│   └── main.go                  # Entry point, CLI flags
-├── internal/
-│   ├── scanner/
-│   │   └── scanner.go           # Walk directory, collect file metadata
-│   ├── organizer/
-│   │   ├── organizer.go         # Core: grouping logic, folder creation, file moves
-│   │   └── categories.go        # Smart category definitions (images, video, etc.)
-│   ├── rules/
-│   │   └── rules.go             # Custom rule engine (YAML-based)
-│   ├── tui/
-│   │   ├── app.go               # Root model, screen routing, global keybindings
-│   │   ├── folderpicker.go      # Screen 1: filesystem navigation
-│   │   ├── preview.go           # Screen 2: before/after preview + stats
-│   │   ├── confirm.go           # Screen 3: confirmation dialog
-│   │   ├── progress.go          # Screen 4: animated execution
-│   │   ├── completed.go         # Screen 5: results summary
-│   │   └── styles.go            # Lipgloss theme, colors, borders
-│   └── config/
-│       ├── config.go            # Load/save config
-│       └── defaults.go          # Default settings
-├── go.mod
-├── go.sum
-├── README.md
-└── LICENSE
+sift/
+├── src/
+│   ├── main.tsx              # Entry point
+│   ├── types.ts              # Core types
+│   ├── screens/
+│   │   ├── app.tsx           # Root app, screen routing
+│   │   ├── folderPicker.tsx  # Folder navigation
+│   │   ├── preview.tsx       # Before/after preview
+│   │   ├── confirm.tsx       # Confirmation dialog
+│   │   ├── progress.tsx      # Animated execution
+│   │   ├── completed.tsx     # Results summary
+│   │   └── styles.ts         # Theme colors
+│   └── utils/
+│       ├── scanner.ts        # File system scanning
+│       ├── organizer.ts      # Grouping + file moves
+│       └── config.ts         # Config loading
+├── docs/
+│   ├── design.md             # This file
+│   └── IDEAS.md              # Future features
+├── package.json
+└── tsconfig.json
 ```
 
 ---
@@ -66,31 +60,28 @@ Start → Folder Picker → Scan → Preview → Confirm → Execute → Done
 
 ### Screen 1: Folder Picker
 - Navigable tree view of filesystem
-- Keyboard: `j`/`k` or arrows to move, `Enter` to select, `~` for home, `/` for path input
-- Sidebar shows live stats: total files, top extensions, estimated folders to create
-- Can type a path directly with `/`
+- Keyboard: `j`/`k` or arrows to move, `Enter` to select, `~` for home
+- Sidebar shows live stats: total files, top extensions
 
 ### Screen 2: Preview
 - **Left panel:** Current folder structure (tree view)
 - **Right panel:** Proposed new structure after organizing
-- **Bottom bar:** Stats — total files, folders to create, space breakdown by category
+- **Bottom bar:** Stats — total files, folders to create, space breakdown
 - **Mode toggle:** `1` = Flat, `2` = By Extension, `3` = Smart Categories
-- Files shown with color-coded icons by type
-- Scrollable panels with `tab` to switch focus
 
 ### Screen 3: Confirmation
 - Summary card: "Will move X files into Y folders"
 - List of folders that will be created
-- `y` to execute, `b` to go back, `e` to edit rules, `q` to quit
+- `y` to execute, `b` to go back, `q` to quit
 
 ### Screen 4: Progress
-- Animated progress bar per folder
+- Animated progress bar
 - File-by-file ticker as moves happen
 - Error count displayed live
 
 ### Screen 5: Completed
 - Summary: files moved, folders created, errors (if any)
-- `o` to open folder in Finder, `r` to re-scan, `q` to quit
+- `r` to re-scan, `q` to quit
 
 ---
 
@@ -127,27 +118,25 @@ Before:                     After:
 ```
 
 ### Mode 3: Smart Categories
-AI-like grouping based on file type heuristics.
+Intelligent grouping based on file type heuristics.
 ```
 Before:                     After:
-├── photo.jpg               ├── photos/
+├── photo.jpg               ├── Screenshots/
 ├── screenshot.png          │   ├── photo.jpg
-├── song.mp3                │   └── screenshot.png
-├── podcast.mp3             ├── music/
-├── doc.pdf                 │   └── song.mp3
-├── notes.md                ├── podcasts/
-├── video.mp4               │   └── podcast.mp3
-└── archive.zip             ├── documents/
-                            │   ├── doc.pdf
-                            │   └── notes.txt
-                            ├── video/
+├── SCR-20260804.png        │   └── screenshot.png
+├── song.mp3                ├── Audio/
+├── podcast.mp3             │   └── song.mp3
+├── doc.pdf                 ├── Documents/
+├── notes.md                │   ├── doc.pdf
+├── video.mp4               │   └── notes.txt
+└── archive.zip             ├── Video/
                             │   └── video.mp4
-                            └── archives/
+                            └── Archives/
                                 └── archive.zip
 ```
 
 ### Mode 4: Custom Rules
-User-defined rules in `~/.config/organize/rules.yaml`:
+User-defined rules in `~/.config/sift/rules.yaml`:
 ```yaml
 rules:
   - name: Screenshots
@@ -171,21 +160,18 @@ rules:
 | `Enter` | Select / confirm |
 | `Tab` | Switch panel focus |
 | `1`/`2`/`3` | Toggle grouping mode |
-| `/` | Jump to path |
 | `~` | Go to home directory |
 | `?` | Toggle help overlay |
 | `q` / `Ctrl+C` | Quit |
 | `b` | Go back |
 | `y` | Confirm action |
-| `e` | Edit rules |
 | `r` | Re-scan |
-| `o` | Open in Finder |
 
 ---
 
 ## Config
 
-Location: `~/.config/organize/config.yaml`
+Location: `~/.config/sift/config.yaml`
 
 ```yaml
 # Default grouping mode: flat, extension, smart, custom
@@ -212,26 +198,26 @@ rules: []
 
 ## Design Principles
 
-1. **Safety first** — never move files without explicit confirmation. Dry-run preview is the default.
-2. **Fast** — scan and preview should feel instant, even for large folders.
-3. **Beautiful** — full-screen TUI with consistent theming, not a ugly CLI tool.
-4. **Non-destructive** — moves files, never deletes. Undo support in v1.1.
-5. **Extensible** — custom rules, config profiles, plugin hooks later.
+1. **Safety first** — never move files without explicit confirmation
+2. **Fast** — scan and preview should feel instant
+3. **Beautiful** — full-screen TUI with consistent theming
+4. **Non-destructive** — moves files, never deletes
+5. **Extensible** — custom rules, config profiles later
 
 ---
 
 ## MVP Scope (v1.0)
 
-- [ ] Folder picker with tree navigation
-- [ ] File scanner with metadata collection
-- [ ] 3 grouping modes (flat, extension, smart)
-- [ ] Preview panel with before/after
-- [ ] Stats bar (file count, folder count, space)
-- [ ] Confirmation dialog
-- [ ] Execution with progress
-- [ ] Completion summary
-- [ ] Config loading
-- [ ] Help overlay
+- [x] Folder picker with tree navigation
+- [x] File scanner with metadata collection
+- [x] 3 grouping modes (flat, extension, smart)
+- [x] Preview panel with before/after
+- [x] Stats bar (file count, folder count, space)
+- [x] Confirmation dialog
+- [x] Execution with progress
+- [x] Completion summary
+- [x] Config loading
+- [x] Help overlay
 
 ---
 

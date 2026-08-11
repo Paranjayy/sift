@@ -94,7 +94,7 @@ export function App() {
         paddingBottom={1}
       >
         <Text bold color={colors.accent}>
-          ✦ Organize
+          ✦ sift
         </Text>
         <Text color={colors.muted}>
           {state.selectedFolder || 'No folder selected'}
