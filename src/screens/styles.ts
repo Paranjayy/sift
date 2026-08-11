@@ -56,7 +56,7 @@ export const boxStyles: Record<string, BoxProps> = {
   },
   panel: {
     flexDirection: 'column',
-    border: true,
+    borderStyle: 'single',
     borderColor: colors.muted,
     padding: 1,
     flexGrow: 1,

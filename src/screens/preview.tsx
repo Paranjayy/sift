@@ -1,7 +1,7 @@
 import React from 'react';
 import {Box, Text, useInput} from 'ink';
 import {FileEntry, GroupingResult, GroupingMode} from '../types';
-import {colors, boxStyles} from './styles';
+import {colors} from './styles';
 
 interface PreviewProps {
   files: FileEntry[];
@@ -37,11 +37,19 @@ export function Preview({files, results, mode, basePath, onModeChange, onConfirm
   });
 
   return (
-    <Box {...boxStyles.content}>
-      <Box {...boxStyles.panel} flexDirection="column">
-        <Text bold color={colors.accent} marginBottom={1}>
-          Current Structure
-        </Text>
+    <Box flexDirection="row" flexGrow={1}>
+      <Box
+        flexDirection="column"
+        borderStyle="single"
+        borderColor={colors.muted}
+        padding={1}
+        flexGrow={1}
+      >
+        <Box marginBottom={1}>
+          <Text bold color={colors.accent}>
+            Current Structure
+          </Text>
+        </Box>
         <Box flexDirection="column">
           {files
             .filter((f) => !f.isDir)
@@ -61,10 +69,19 @@ export function Preview({files, results, mode, basePath, onModeChange, onConfirm
         </Box>
       </Box>
 
-      <Box {...boxStyles.panel} flexDirection="column" marginLeft={1}>
-        <Text bold color={colors.success} marginBottom={1}>
-          Proposed Structure
-        </Text>
+      <Box
+        flexDirection="column"
+        borderStyle="single"
+        borderColor={colors.muted}
+        padding={1}
+        flexGrow={1}
+        marginLeft={1}
+      >
+        <Box marginBottom={1}>
+          <Text bold color={colors.success}>
+            Proposed Structure
+          </Text>
+        </Box>
         <Box flexDirection="column">
           {results.map((group) => (
             <Box key={group.category} flexDirection="column">

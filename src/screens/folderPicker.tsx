@@ -5,7 +5,7 @@ import * as path from 'path';
 import * as os from 'os';
 import {OrganizeConfig} from '../types';
 import {scanDirectory, computeStats} from '../utils/scanner';
-import {colors, boxStyles} from './styles';
+import {colors} from './styles';
 
 interface FolderPickerProps {
   onSelect: (folder: string) => void;
@@ -42,13 +42,13 @@ export function FolderPicker({onSelect, config}: FolderPickerProps) {
       setSelectedIndex(0);
 
       const files = await scanDirectory(dirPath, config.showHidden, config.exclude);
-      const stats = computeStats(files);
-      const topExts = Array.from(stats.byExtension.entries())
+      const fileStats = computeStats(files);
+      const topExts = Array.from(fileStats.byExtension.entries())
         .sort((a, b) => b[1].count - a[1].count)
         .slice(0, 5)
         .map(([ext]) => ext);
 
-      setStats({totalFiles: stats.totalFiles, topExts});
+      setStats({totalFiles: fileStats.totalFiles, topExts});
     } catch {
       setItems([]);
       setStats(null);
@@ -72,17 +72,22 @@ export function FolderPicker({onSelect, config}: FolderPickerProps) {
     if (input === '~') {
       setCurrentPath(os.homedir());
     }
-    if (input === '/') {
-      // TODO: path input mode
-    }
   });
 
   return (
-    <Box {...boxStyles.content}>
-      <Box {...boxStyles.sidebar}>
-        <Text bold color={colors.accent} marginBottom={1}>
-          Folders
-        </Text>
+    <Box flexDirection="row" flexGrow={1}>
+      <Box
+        flexDirection="column"
+        width="30%"
+        borderRight={true}
+        borderColor={colors.muted}
+        paddingRight={1}
+      >
+        <Box marginBottom={1}>
+          <Text bold color={colors.accent}>
+            Folders
+          </Text>
+        </Box>
         {isLoading ? (
           <Text color={colors.muted}>Loading...</Text>
         ) : items.length === 0 ? (
@@ -101,10 +106,12 @@ export function FolderPicker({onSelect, config}: FolderPickerProps) {
         )}
       </Box>
 
-      <Box {...boxStyles.main} paddingLeft={1}>
-        <Text bold color={colors.highlight} marginBottom={1}>
-          {currentPath}
-        </Text>
+      <Box flexDirection="column" flexGrow={1} paddingLeft={1}>
+        <Box marginBottom={1}>
+          <Text bold color={colors.highlight}>
+            {currentPath}
+          </Text>
+        </Box>
 
         <Box flexDirection="column" marginTop={1} gap={1}>
           <Text color={colors.cyan}>
@@ -116,7 +123,13 @@ export function FolderPicker({onSelect, config}: FolderPickerProps) {
         </Box>
 
         {stats && (
-          <Box flexDirection="column" marginTop={2} border={true} borderColor={colors.muted} padding={1}>
+          <Box
+            flexDirection="column"
+            marginTop={2}
+            borderStyle="single"
+            borderColor={colors.muted}
+            padding={1}
+          >
             <Text bold color={colors.accent}>Stats</Text>
             <Text>Files: {stats.totalFiles}</Text>
             {stats.topExts.length > 0 && (

@@ -1,4 +1,4 @@
-import React, {useState, useEffect, useCallback} from 'react';
+import React, {useState, useCallback} from 'react';
 import {Box, Text, useInput, useApp} from 'ink';
 import {FolderPicker} from './folderPicker';
 import {Preview} from './preview';
@@ -6,10 +6,10 @@ import {Confirm} from './confirm';
 import {Progress} from './progress';
 import {Completed} from './completed';
 import {FileEntry, GroupingResult, GroupingMode, OrganizeConfig, Screen} from '../types';
-import {scanDirectory, computeStats} from '../utils/scanner';
+import {scanDirectory} from '../utils/scanner';
 import {groupFiles} from '../utils/organizer';
 import {loadConfig} from '../utils/config';
-import {colors, boxStyles} from './styles';
+import {colors} from './styles';
 
 interface AppState {
   screen: Screen;
@@ -39,10 +39,11 @@ export function App() {
     setState((s) => ({...s, selectedFolder: folder, screen: 'preview'}));
 
     const files = await scanDirectory(folder);
-    const results = groupFiles(files, state.mode, folder, state.config.rules);
-
-    setState((s) => ({...s, files, results}));
-  }, [state.mode, state.config.rules]);
+    setState((s) => {
+      const results = groupFiles(files, s.mode, folder, s.config.rules);
+      return {...s, files, results};
+    });
+  }, []);
 
   const handleModeChange = useCallback((mode: GroupingMode) => {
     setState((s) => {
@@ -84,8 +85,14 @@ export function App() {
   });
 
   return (
-    <Box {...boxStyles.app}>
-      <Box {...boxStyles.header}>
+    <Box flexDirection="column" width="100%" height="100%" padding={1}>
+      <Box
+        flexDirection="row"
+        justifyContent="space-between"
+        borderBottom={true}
+        borderColor={colors.muted}
+        paddingBottom={1}
+      >
         <Text bold color={colors.accent}>
           ✦ Organize
         </Text>
@@ -151,7 +158,7 @@ export function App() {
           alignItems="center"
           backgroundColor={colors.bg}
         >
-          <Box border={true} borderColor={colors.accent} padding={2} flexDirection="column" gap={1}>
+          <Box borderStyle="single" borderColor={colors.accent} padding={2} flexDirection="column" gap={1}>
             <Text bold color={colors.accent}>Keyboard Shortcuts</Text>
             <Text>j/k or ↑/↓ — Navigate</Text>
             <Text>Enter — Select</Text>
@@ -164,7 +171,13 @@ export function App() {
         </Box>
       )}
 
-      <Box {...boxStyles.footer}>
+      <Box
+        flexDirection="row"
+        justifyContent="space-between"
+        borderTop={true}
+        borderColor={colors.muted}
+        paddingTop={1}
+      >
         <Text color={colors.muted}>
           ?: Help | q: Quit
         </Text>

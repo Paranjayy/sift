@@ -1,7 +1,7 @@
 import React from 'react';
 import {Box, Text, useInput} from 'ink';
 import {GroupingResult} from '../types';
-import {colors, boxStyles} from './styles';
+import {colors} from './styles';
 
 interface ConfirmProps {
   results: GroupingResult[];
@@ -20,18 +20,20 @@ export function Confirm({results, basePath, onExecute, onBack}: ConfirmProps) {
   });
 
   return (
-    <Box {...boxStyles.content} justifyContent="center" alignItems="center">
+    <Box flexDirection="row" justifyContent="center" alignItems="center" flexGrow={1}>
       <Box
         flexDirection="column"
-        border={true}
+        borderStyle="single"
         borderColor={colors.warning}
         padding={2}
         gap={1}
         width="60%"
       >
-        <Text bold color={colors.warning} marginBottom={1}>
-          Confirm Organization
-        </Text>
+        <Box marginBottom={1}>
+          <Text bold color={colors.warning}>
+            Confirm Organization
+          </Text>
+        </Box>
 
         <Text>
           Move <Text bold color={colors.accent}>{totalFiles}</Text> files into{' '}

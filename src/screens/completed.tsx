@@ -1,6 +1,6 @@
 import React from 'react';
 import {Box, Text, useInput, useApp} from 'ink';
-import {colors, boxStyles} from './styles';
+import {colors} from './styles';
 
 interface CompletedProps {
   result: {moved: number; errors: string[]};
@@ -18,18 +18,20 @@ export function Completed({result, onRestart}: CompletedProps) {
   const hasErrors = result.errors.length > 0;
 
   return (
-    <Box {...boxStyles.content} justifyContent="center" alignItems="center">
+    <Box flexDirection="row" justifyContent="center" alignItems="center" flexGrow={1}>
       <Box
         flexDirection="column"
-        border={true}
+        borderStyle="single"
         borderColor={hasErrors ? colors.warning : colors.success}
         padding={2}
         gap={1}
         width="50%"
       >
-        <Text bold color={hasErrors ? colors.warning : colors.success} marginBottom={1}>
-          {hasErrors ? 'Completed with errors' : 'Organization Complete!'}
-        </Text>
+        <Box marginBottom={1}>
+          <Text bold color={hasErrors ? colors.warning : colors.success}>
+            {hasErrors ? 'Completed with errors' : 'Organization Complete!'}
+          </Text>
+        </Box>
 
         <Box flexDirection="column" gap={1}>
           <Text>
