@@ -2,6 +2,7 @@ import React from 'react';
 import {Box, Text, useInput} from 'ink';
 import {GroupingResult} from '../types';
 import {colors} from './styles';
+import {getFileIcon} from '../utils/scanner';
 
 interface ConfirmProps {
   results: GroupingResult[];
@@ -43,7 +44,7 @@ export function Confirm({results, basePath, onExecute, onBack}: ConfirmProps) {
         <Box flexDirection="column" marginTop={1} gap={0}>
           {results.map((group) => (
             <Box key={group.category} flexDirection="row" gap={1}>
-              <Text color={colors.muted}>├─</Text>
+              <Text>📁</Text>
               <Text color={colors.highlight}>{group.category}/</Text>
               <Text color={colors.muted}>({group.files.length} files)</Text>
             </Box>

@@ -2,6 +2,24 @@ import * as fs from 'fs';
 import * as path from 'path';
 import { FileEntry, OrganizeStats } from '../types';
 
+export function getFileIcon(ext: string, isDir: boolean): string {
+  if (isDir) return '📁';
+  const icons: Record<string, string> = {
+    '.jpg': '🖼️', '.jpeg': '🖼️', '.png': '🖼️', '.gif': '🖼️', '.svg': '🖼️', '.webp': '🖼️',
+    '.mp4': '🎬', '.mov': '🎬', '.avi': '🎬', '.mkv': '🎬', '.webm': '🎬',
+    '.mp3': '🎵', '.wav': '🎵', '.flac': '🎵', '.aac': '🎵', '.ogg': '🎵', '.m4a': '🎵',
+    '.pdf': '📄', '.doc': '📝', '.docx': '📝', '.txt': '📝', '.rtf': '📝',
+    '.xls': '📊', '.xlsx': '📊', '.csv': '📊',
+    '.ppt': '📽️', '.pptx': '📽️',
+    '.zip': '📦', '.rar': '📦', '.7z': '📦', '.tar': '📦', '.gz': '📦',
+    '.js': '⚡', '.ts': '⚡', '.jsx': '⚛️', '.tsx': '⚛️', '.py': '🐍', '.go': '🔵', '.rs': '🦀',
+    '.json': '📋', '.xml': '📋', '.yaml': '📋', '.yml': '📋',
+    '.ttf': '🔤', '.otf': '🔤', '.woff': '🔤',
+    '.dmg': '💿', '.iso': '💿',
+  };
+  return icons[ext] || '📄';
+}
+
 const DEFAULT_EXCLUDE = [
   '.DS_Store',
   'Thumbs.db',

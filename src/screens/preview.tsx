@@ -2,6 +2,7 @@ import React from 'react';
 import {Box, Text, useInput} from 'ink';
 import {FileEntry, GroupingResult, GroupingMode} from '../types';
 import {colors} from './styles';
+import {getFileIcon} from '../utils/scanner';
 
 interface PreviewProps {
   files: FileEntry[];
@@ -56,7 +57,7 @@ export function Preview({files, results, mode, basePath, onModeChange, onConfirm
             .slice(0, 20)
             .map((file) => (
               <Box key={file.path} flexDirection="row" gap={1}>
-                <Text color={colors.muted}>├─</Text>
+                <Text>{getFileIcon(file.ext, false)}</Text>
                 <Text color={colors.fg}>{file.name}</Text>
                 <Text color={colors.muted}>({formatSize(file.size)})</Text>
               </Box>
@@ -90,7 +91,7 @@ export function Preview({files, results, mode, basePath, onModeChange, onConfirm
               </Text>
               {group.files.slice(0, 3).map((file) => (
                 <Box key={file.path} flexDirection="row" gap={1} paddingLeft={2}>
-                  <Text color={colors.muted}>├─</Text>
+                  <Text>{getFileIcon(file.ext, false)}</Text>
                   <Text color={colors.fg}>{file.name}</Text>
                 </Box>
               ))}

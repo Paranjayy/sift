@@ -98,6 +98,7 @@ export function FolderPicker({onSelect, config}: FolderPickerProps) {
               <Text color={i === selectedIndex ? colors.accent : undefined}>
                 {i === selectedIndex ? '▸ ' : '  '}
               </Text>
+              <Text>📁</Text>
               <Text color={i === selectedIndex ? colors.fg : colors.muted}>
                 {item.name}/
               </Text>
