@@ -1,4 +1,4 @@
-import React, {useState, useCallback} from 'react';
+import React, {useState, useCallback, useEffect} from 'react';
 import {Box, Text, useInput, useApp} from 'ink';
 import {FolderPicker} from './folderPicker';
 import {Preview} from './preview';
@@ -22,11 +22,15 @@ interface AppState {
   moveResult: {moved: number; errors: string[]} | null;
 }
 
-export function App() {
+interface AppProps {
+  initialFolder?: string | null;
+}
+
+export function App({initialFolder}: AppProps) {
   const {exit} = useApp();
   const [state, setState] = useState<AppState>({
-    screen: 'folderPicker',
-    selectedFolder: null,
+    screen: initialFolder ? 'preview' : 'folderPicker',
+    selectedFolder: initialFolder || null,
     files: [],
     results: [],
     mode: 'smart',
@@ -43,6 +47,13 @@ export function App() {
       const results = groupFiles(files, s.mode, folder, s.config.rules);
       return {...s, files, results};
     });
+  }, []);
+
+  // Auto-scan initial folder if provided
+  useEffect(() => {
+    if (initialFolder) {
+      handleFolderSelect(initialFolder);
+    }
   }, []);
 
   const handleModeChange = useCallback((mode: GroupingMode) => {
