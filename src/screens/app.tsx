@@ -104,15 +104,18 @@ export function App({initialFolder}: AppProps) {
         borderColor={colors.muted}
         paddingBottom={1}
       >
-        <Text bold color={colors.accent}>
-          ✦ sift
-        </Text>
+        <Box flexDirection="row" gap={1}>
+          <Text bold color={colors.cyan}>✦</Text>
+          <Text bold color={colors.accent}>sift</Text>
+          <Text color={colors.muted}>v0.1.0</Text>
+        </Box>
         <Text color={colors.muted}>
           {state.selectedFolder || 'No folder selected'}
         </Text>
-        <Text color={colors.muted}>
-          Mode: {state.mode}
-        </Text>
+        <Box flexDirection="row" gap={1}>
+          <Text color={colors.muted}>Mode:</Text>
+          <Text color={colors.highlight}>{state.mode}</Text>
+        </Box>
       </Box>
 
       <Box flexGrow={1}>
@@ -169,15 +172,26 @@ export function App({initialFolder}: AppProps) {
           alignItems="center"
           backgroundColor={colors.bg}
         >
-          <Box borderStyle="single" borderColor={colors.accent} padding={2} flexDirection="column" gap={1}>
-            <Text bold color={colors.accent}>Keyboard Shortcuts</Text>
+          <Box borderStyle="double" borderColor={colors.accent} padding={2} flexDirection="column" gap={1}>
+            <Text bold color={colors.accent}>✦ sift — Keyboard Shortcuts</Text>
+            <Box marginTop={1}>
+              <Text bold color={colors.highlight}>Navigation</Text>
+            </Box>
             <Text>j/k or ↑/↓ — Navigate</Text>
-            <Text>Enter — Select</Text>
+            <Text>Enter — Select / Confirm</Text>
             <Text>Tab — Switch panel</Text>
-            <Text>1/2/3 — Switch mode</Text>
-            <Text>/ — Jump to path</Text>
-            <Text>q — Quit</Text>
-            <Text>Esc — Close help</Text>
+            <Box marginTop={1}>
+              <Text bold color={colors.highlight}>Actions</Text>
+            </Box>
+            <Text>1/2/3 — Switch mode (Flat/Ext/Smart)</Text>
+            <Text>~ — Go to home directory</Text>
+            <Text>y — Execute organization</Text>
+            <Text>b — Go back</Text>
+            <Box marginTop={1}>
+              <Text bold color={colors.highlight}>General</Text>
+            </Box>
+            <Text>q or Ctrl+C — Quit</Text>
+            <Text>Esc — Close this help</Text>
           </Box>
         </Box>
       )}
@@ -189,12 +203,17 @@ export function App({initialFolder}: AppProps) {
         borderColor={colors.muted}
         paddingTop={1}
       >
-        <Text color={colors.muted}>
-          ?: Help | q: Quit
-        </Text>
+        <Box flexDirection="row" gap={1}>
+          <Text color={colors.cyan}>?</Text>
+          <Text color={colors.muted}>Help</Text>
+          <Text color={colors.muted}>|</Text>
+          <Text color={colors.cyan}>q</Text>
+          <Text color={colors.muted}>Quit</Text>
+        </Box>
         <Text color={colors.muted}>
           {state.screen === 'preview' && '1/2/3: Mode | Enter: Confirm'}
           {state.screen === 'confirm' && 'y: Execute | b: Back'}
+          {state.screen === 'folderPicker' && 'Enter: Select | ~: Home'}
         </Text>
       </Box>
     </Box>
