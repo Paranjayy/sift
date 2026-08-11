@@ -84,24 +84,32 @@ export function Preview({files, results, mode, basePath, onModeChange, onConfirm
           </Text>
         </Box>
         <Box flexDirection="column">
-          {results.map((group) => (
-            <Box key={group.category} flexDirection="column">
-              <Text bold color={colors.highlight}>
-                {group.category}/ ({group.files.length} files)
-              </Text>
-              {group.files.slice(0, 3).map((file) => (
-                <Box key={file.path} flexDirection="row" gap={1} paddingLeft={2}>
-                  <Text>{getFileIcon(file.ext, false)}</Text>
-                  <Text color={colors.fg}>{file.name}</Text>
+          {results.map((group) => {
+            const groupSize = group.files.reduce((a, f) => a + f.size, 0);
+            return (
+              <Box key={group.category} flexDirection="column">
+                <Box flexDirection="row" gap={1}>
+                  <Text bold color={colors.highlight}>
+                    📁 {group.category}/
+                  </Text>
+                  <Text color={colors.muted}>
+                    ({group.files.length} files, {formatSize(groupSize)})
+                  </Text>
                 </Box>
-              ))}
-              {group.files.length > 3 && (
-                <Box paddingLeft={2}>
-                  <Text color={colors.muted}>...{group.files.length - 3} more</Text>
-                </Box>
-              )}
-            </Box>
-          ))}
+                {group.files.slice(0, 3).map((file) => (
+                  <Box key={file.path} flexDirection="row" gap={1} paddingLeft={2}>
+                    <Text>{getFileIcon(file.ext, false)}</Text>
+                    <Text color={colors.fg}>{file.name}</Text>
+                  </Box>
+                ))}
+                {group.files.length > 3 && (
+                  <Box paddingLeft={2}>
+                    <Text color={colors.muted}>...{group.files.length - 3} more</Text>
+                  </Box>
+                )}
+              </Box>
+            );
+          })}
         </Box>
       </Box>
 
@@ -117,6 +125,8 @@ export function Preview({files, results, mode, basePath, onModeChange, onConfirm
         paddingTop={1}
       >
         <Box flexDirection="row" gap={2}>
+          <Text color={colors.warning}>DRY RUN</Text>
+          <Text color={colors.muted}>|</Text>
           <Text color={colors.muted}>Mode:</Text>
           <Text color={mode === 'flat' ? colors.accent : colors.muted}>1:Flat</Text>
           <Text color={mode === 'extension' ? colors.accent : colors.muted}>2:Ext</Text>

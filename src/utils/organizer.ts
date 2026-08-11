@@ -3,15 +3,17 @@ import * as path from 'path';
 import { FileEntry, GroupingResult, GroupingMode, CustomRule } from '../types';
 
 const SMART_CATEGORIES: Record<string, string[]> = {
-  Screenshots: ['Screenshot', 'SCR-'],
-  Images: ['.jpg', '.jpeg', '.png', '.gif', '.bmp', '.svg', '.webp', '.ico', '.tiff'],
-  Video: ['.mp4', '.mov', '.avi', '.mkv', '.webm'],
-  Audio: ['.mp3', '.wav', '.flac', '.aac', '.ogg', '.m4a'],
-  Documents: ['.pdf', '.doc', '.docx', '.xls', '.xlsx', '.ppt', '.pptx', '.txt'],
-  Code: ['.js', '.ts', '.jsx', '.tsx', '.py', '.go', '.rs', '.java', '.c', '.cpp'],
-  Archives: ['.zip', '.rar', '.7z', '.tar', '.gz', '.bz2'],
-  Fonts: ['.ttf', '.otf', '.woff', '.woff2'],
-  Data: ['.json', '.xml', '.yaml', '.yml', '.csv', '.sql'],
+  Screenshots: ['Screenshot', 'SCR-', 'Screen Shot'],
+  'Wallpapers': ['.heic', '.heif'],
+  Images: ['.jpg', '.jpeg', '.png', '.gif', '.bmp', '.svg', '.webp', '.ico', '.tiff', '.tif'],
+  Video: ['.mp4', '.mov', '.avi', '.mkv', '.webm', '.flv', '.wmv', '.m4v'],
+  Audio: ['.mp3', '.wav', '.flac', '.aac', '.ogg', '.m4a', '.opus', '.wma'],
+  Documents: ['.pdf', '.doc', '.docx', '.xls', '.xlsx', '.ppt', '.pptx', '.txt', '.rtf', '.odt', '.pages', '.numbers', '.keynote'],
+  Code: ['.js', '.ts', '.jsx', '.tsx', '.py', '.go', '.rs', '.java', '.c', '.cpp', '.h', '.rb', '.php', '.swift', '.kt', '.css', '.html'],
+  Archives: ['.zip', '.rar', '.7z', '.tar', '.gz', '.bz2', '.xz', '.tgz'],
+  Fonts: ['.ttf', '.otf', '.woff', '.woff2', '.eot'],
+  Data: ['.json', '.xml', '.yaml', '.yml', '.csv', '.sql', '.db', '.sqlite'],
+  'Disk Images': ['.dmg', '.iso', '.img'],
 };
 
 export function groupFiles(
@@ -134,7 +136,18 @@ function groupCustom(
 }
 
 function getSmartCategory(filename: string, ext: string): string {
-  if (filename.startsWith('Screenshot') || filename.startsWith('SCR-')) {
+  // Screenshot detection
+  if (filename.startsWith('Screenshot') || filename.startsWith('SCR-') || filename.startsWith('Screen Shot')) {
+    return 'Screenshots';
+  }
+
+  // macOS screenshot with timestamp pattern
+  if (filename.match(/^Screenshot \d{4}-\d{2}-\d{2} at/)) {
+    return 'Screenshots';
+  }
+
+  // Shottr pattern
+  if (filename.match(/^SCR-\d{8}/)) {
     return 'Screenshots';
   }
 
