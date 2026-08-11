@@ -16,7 +16,7 @@
   "keywords": ["tui", "file-organizer", "terminal", "cli", "macos"],
   "author": "paranjay",
   "license": "MIT",
-  "type": "commonjs",
+  "type": "module",
   "dependencies": {
     "@inkjs/ui": "^2.0.0",
     "ink": "^7.1.1",
