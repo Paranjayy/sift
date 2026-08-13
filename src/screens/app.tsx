@@ -1,15 +1,19 @@
 import React, {useState, useCallback, useEffect} from 'react';
 import {Box, Text, useInput, useApp} from 'ink';
-import {FolderPicker} from './folderPicker';
-import {Preview} from './preview';
-import {Confirm} from './confirm';
-import {Progress} from './progress';
-import {Completed} from './completed';
-import {FileEntry, GroupingResult, GroupingMode, OrganizeConfig, Screen} from '../types';
-import {scanDirectory} from '../utils/scanner';
-import {groupFiles} from '../utils/organizer';
-import {loadConfig} from '../utils/config';
-import {colors} from './styles';
+import {FolderPicker} from './folderPicker.js';
+import {Preview} from './preview.js';
+import {Confirm} from './confirm.js';
+import {Progress} from './progress.js';
+import {Completed} from './completed.js';
+import {GlobalPreview} from './globalPreview.js';
+import {GlobalConfirm} from './globalConfirm.js';
+import {GlobalProgress} from './globalProgress.js';
+import {GlobalCompleted} from './globalCompleted.js';
+import {FileEntry, GroupingResult, FolderResult, GroupingMode, OrganizeConfig, Screen} from '../types.js';
+import {scanDirectory} from '../utils/scanner.js';
+import {groupFiles} from '../utils/organizer.js';
+import {loadConfig} from '../utils/config.js';
+import {colors} from './styles.js';
 
 interface AppState {
   screen: Screen;
@@ -20,16 +24,20 @@ interface AppState {
   config: OrganizeConfig;
   showHelp: boolean;
   moveResult: {moved: number; errors: string[]} | null;
+  globalMode: boolean;
+  folderResults: FolderResult[];
+  globalMoveResult: {totalMoved: number; errors: string[]} | null;
 }
 
 interface AppProps {
   initialFolder?: string | null;
+  isGlobal?: boolean;
 }
 
-export function App({initialFolder}: AppProps) {
+export function App({initialFolder, isGlobal}: AppProps) {
   const {exit} = useApp();
   const [state, setState] = useState<AppState>({
-    screen: initialFolder ? 'preview' : 'folderPicker',
+    screen: isGlobal ? 'globalPreview' : (initialFolder ? 'preview' : 'folderPicker'),
     selectedFolder: initialFolder || null,
     files: [],
     results: [],
@@ -37,6 +45,9 @@ export function App({initialFolder}: AppProps) {
     config: loadConfig(),
     showHelp: false,
     moveResult: null,
+    globalMode: isGlobal || false,
+    folderResults: [],
+    globalMoveResult: null,
   });
 
   const handleFolderSelect = useCallback(async (folder: string) => {
@@ -49,7 +60,41 @@ export function App({initialFolder}: AppProps) {
     });
   }, []);
 
-  // Auto-scan initial folder if provided
+  const handleGlobalScan = useCallback(async () => {
+    const folders = state.config.globalFolders;
+    const folderResults: FolderResult[] = [];
+
+    for (const folderPath of folders) {
+      try {
+        const stat = await import('fs').then((fs) => fs.promises.stat(folderPath));
+        if (!stat.isDirectory()) continue;
+      } catch {
+        continue;
+      }
+
+      const files = await scanDirectory(folderPath);
+      const onlyFiles = files.filter((f) => !f.isDir);
+      if (onlyFiles.length === 0) continue;
+
+      const results = groupFiles(onlyFiles, state.mode, folderPath, state.config.rules);
+      const folderName = folderPath.split('/').pop() || folderPath;
+      folderResults.push({
+        folderPath,
+        folderName,
+        results,
+        totalFiles: onlyFiles.length,
+      });
+    }
+
+    setState((s) => ({...s, folderResults}));
+  }, [state.config.globalFolders, state.mode, state.config.rules]);
+
+  useEffect(() => {
+    if (isGlobal) {
+      handleGlobalScan();
+    }
+  }, []);
+
   useEffect(() => {
     if (initialFolder) {
       handleFolderSelect(initialFolder);
@@ -58,27 +103,50 @@ export function App({initialFolder}: AppProps) {
 
   const handleModeChange = useCallback((mode: GroupingMode) => {
     setState((s) => {
+      if (s.globalMode) {
+        const folderResults = s.folderResults.map((fr) => ({
+          ...fr,
+          results: groupFiles(
+            fr.results.flatMap((r) => r.files),
+            mode,
+            fr.folderPath,
+            s.config.rules
+          ),
+        }));
+        return {...s, mode, folderResults};
+      }
       const results = groupFiles(s.files, mode, s.selectedFolder!, s.config.rules);
       return {...s, mode, results};
     });
   }, []);
 
   const handleConfirm = useCallback(() => {
-    setState((s) => ({...s, screen: 'confirm'}));
+    setState((s) => ({
+      ...s,
+      screen: s.globalMode ? 'globalConfirm' : 'confirm',
+    }));
   }, []);
 
   const handleExecute = useCallback(() => {
-    setState((s) => ({...s, screen: 'progress'}));
+    setState((s) => ({
+      ...s,
+      screen: s.globalMode ? 'globalProgress' : 'progress',
+    }));
   }, []);
 
   const handleComplete = useCallback((result: {moved: number; errors: string[]}) => {
     setState((s) => ({...s, screen: 'completed', moveResult: result}));
   }, []);
 
+  const handleGlobalComplete = useCallback((result: {totalMoved: number; errors: string[]}) => {
+    setState((s) => ({...s, screen: 'globalCompleted', globalMoveResult: result}));
+  }, []);
+
   const handleBack = useCallback(() => {
     setState((s) => {
       if (s.screen === 'confirm') return {...s, screen: 'preview'};
       if (s.screen === 'preview') return {...s, screen: 'folderPicker'};
+      if (s.screen === 'globalConfirm') return {...s, screen: 'globalPreview'};
       return s;
     });
   }, []);
@@ -110,9 +178,17 @@ export function App({initialFolder}: AppProps) {
           <Text color={colors.muted}>v0.1.0</Text>
         </Box>
         <Text color={colors.muted}>
-          {state.selectedFolder || 'No folder selected'}
+          {state.globalMode
+            ? `${state.folderResults.length} folders loaded`
+            : (state.selectedFolder || 'No folder selected')}
         </Text>
         <Box flexDirection="row" gap={1}>
+          {state.globalMode && (
+            <>
+              <Text color={colors.warning}>GLOBAL</Text>
+              <Text color={colors.muted}>|</Text>
+            </>
+          )}
           <Text color={colors.muted}>Mode:</Text>
           <Text color={colors.highlight}>{state.mode}</Text>
         </Box>
@@ -135,10 +211,28 @@ export function App({initialFolder}: AppProps) {
           />
         )}
 
+        {state.screen === 'globalPreview' && (
+          <GlobalPreview
+            folderResults={state.folderResults}
+            mode={state.mode}
+            onModeChange={handleModeChange}
+            onConfirm={handleConfirm}
+            onBack={handleBack}
+          />
+        )}
+
         {state.screen === 'confirm' && state.selectedFolder && (
           <Confirm
             results={state.results}
             basePath={state.selectedFolder}
+            onExecute={handleExecute}
+            onBack={handleBack}
+          />
+        )}
+
+        {state.screen === 'globalConfirm' && (
+          <GlobalConfirm
+            folderResults={state.folderResults}
             onExecute={handleExecute}
             onBack={handleBack}
           />
@@ -152,10 +246,24 @@ export function App({initialFolder}: AppProps) {
           />
         )}
 
+        {state.screen === 'globalProgress' && (
+          <GlobalProgress
+            folderResults={state.folderResults}
+            onComplete={handleGlobalComplete}
+          />
+        )}
+
         {state.screen === 'completed' && state.moveResult && (
           <Completed
             result={state.moveResult}
             onRestart={() => setState((s) => ({...s, screen: 'folderPicker', files: [], results: []}))}
+          />
+        )}
+
+        {state.screen === 'globalCompleted' && state.globalMoveResult && (
+          <GlobalCompleted
+            result={state.globalMoveResult}
+            onRestart={() => setState((s) => ({...s, screen: 'folderPicker', globalMode: false, folderResults: []}))}
           />
         )}
       </Box>
@@ -211,8 +319,8 @@ export function App({initialFolder}: AppProps) {
           <Text color={colors.muted}>Quit</Text>
         </Box>
         <Text color={colors.muted}>
-          {state.screen === 'preview' && '1/2/3: Mode | Enter: Confirm'}
-          {state.screen === 'confirm' && 'y: Execute | b: Back'}
+          {(state.screen === 'preview' || state.screen === 'globalPreview') && '1/2/3: Mode | Enter: Confirm'}
+          {(state.screen === 'confirm' || state.screen === 'globalConfirm') && 'y: Execute | b: Back'}
           {state.screen === 'folderPicker' && 'Enter: Select | ~: Home'}
         </Text>
       </Box>

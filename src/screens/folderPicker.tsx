@@ -3,9 +3,9 @@ import {Box, Text, useInput} from 'ink';
 import * as fs from 'fs';
 import * as path from 'path';
 import * as os from 'os';
-import {OrganizeConfig} from '../types';
-import {scanDirectory, computeStats} from '../utils/scanner';
-import {colors} from './styles';
+import {OrganizeConfig} from '../types.js';
+import {scanDirectory, computeStats} from '../utils/scanner.js';
+import {colors} from './styles.js';
 
 interface FolderPickerProps {
   onSelect: (folder: string) => void;

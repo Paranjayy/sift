@@ -1,10 +1,16 @@
 import * as fs from 'fs';
 import * as path from 'path';
 import * as os from 'os';
-import { OrganizeConfig, GroupingMode, CustomRule } from '../types';
+import { OrganizeConfig, GroupingMode, CustomRule } from '../types.js';
 
 const CONFIG_DIR = path.join(os.homedir(), '.config', 'sift');
 const CONFIG_FILE = path.join(CONFIG_DIR, 'config.yaml');
+
+const DEFAULT_GLOBAL_FOLDERS = [
+  path.join(os.homedir(), 'Downloads'),
+  path.join(os.homedir(), 'Desktop'),
+  path.join(os.homedir(), 'Documents'),
+];
 
 const DEFAULT_CONFIG: OrganizeConfig = {
   defaultMode: 'smart',
@@ -12,6 +18,7 @@ const DEFAULT_CONFIG: OrganizeConfig = {
   dryRun: true,
   exclude: ['.DS_Store', 'Thumbs.db', '.git', 'node_modules', '.cache'],
   rules: [],
+  globalFolders: DEFAULT_GLOBAL_FOLDERS,
 };
 
 export function loadConfig(): OrganizeConfig {
@@ -33,8 +40,10 @@ export function saveConfig(config: OrganizeConfig): void {
 }
 
 function parseYaml(content: string): OrganizeConfig {
-  const config = { ...DEFAULT_CONFIG };
+  const config = { ...DEFAULT_CONFIG, globalFolders: [...DEFAULT_GLOBAL_FOLDERS] };
   const lines = content.split('\n');
+
+  let inGlobalFolders = false;
 
   for (const line of lines) {
     const trimmed = line.trim();
@@ -45,6 +54,26 @@ function parseYaml(content: string): OrganizeConfig {
 
     const key = trimmed.slice(0, colonIndex).trim();
     const value = trimmed.slice(colonIndex + 1).trim();
+
+    if (key === 'global_folders') {
+      inGlobalFolders = true;
+      if (value === '' || value === '[]') {
+        inGlobalFolders = false;
+      }
+      continue;
+    }
+
+    if (inGlobalFolders) {
+      if (trimmed.startsWith('-')) {
+        const folder = trimmed.slice(1).trim().replace(/^["']|["']$/g, '');
+        const expanded = folder.replace(/^~/, os.homedir());
+        if (!config.globalFolders.includes(expanded)) {
+          config.globalFolders.push(expanded);
+        }
+      } else {
+        inGlobalFolders = false;
+      }
+    }
 
     switch (key) {
       case 'default_mode':
@@ -70,6 +99,11 @@ function toYaml(config: OrganizeConfig): string {
   yaml += `exclude:\n`;
   for (const ex of config.exclude) {
     yaml += `  - "${ex}"\n`;
+  }
+  yaml += `global_folders:\n`;
+  for (const folder of config.globalFolders) {
+    const displayPath = folder.startsWith(os.homedir()) ? `~${folder.slice(os.homedir().length)}` : folder;
+    yaml += `  - "${displayPath}"\n`;
   }
   if (config.rules.length > 0) {
     yaml += `rules:\n`;

@@ -1,8 +1,8 @@
 import React from 'react';
 import {Box, Text, useInput} from 'ink';
-import {FileEntry, GroupingResult, GroupingMode} from '../types';
-import {colors} from './styles';
-import {getFileIcon} from '../utils/scanner';
+import {FileEntry, GroupingResult, GroupingMode} from '../types.js';
+import {colors} from './styles.js';
+import {getFileIcon} from '../utils/scanner.js';
 
 interface PreviewProps {
   files: FileEntry[];

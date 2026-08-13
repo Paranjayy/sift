@@ -4,7 +4,7 @@
   "description": "Sift through files, organize into folders. Terminal file curator.",
   "main": "dist/main.js",
   "bin": {
-    "sift": "dist/main.js"
+    "sift": "bin/sift.mjs"
   },
   "scripts": {
     "dev": "tsx src/main.tsx",

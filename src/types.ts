@@ -13,6 +13,13 @@ export interface GroupingResult {
   destination: string;
 }
 
+export interface FolderResult {
+  folderPath: string;
+  folderName: string;
+  results: GroupingResult[];
+  totalFiles: number;
+}
+
 export type GroupingMode = 'flat' | 'extension' | 'smart' | 'custom';
 
 export interface OrganizeConfig {
@@ -21,6 +28,7 @@ export interface OrganizeConfig {
   dryRun: boolean;
   exclude: string[];
   rules: CustomRule[];
+  globalFolders: string[];
 }
 
 export interface CustomRule {
@@ -43,4 +51,8 @@ export type Screen =
   | 'preview'
   | 'confirm'
   | 'progress'
-  | 'completed';
+  | 'completed'
+  | 'globalPreview'
+  | 'globalConfirm'
+  | 'globalProgress'
+  | 'globalCompleted';

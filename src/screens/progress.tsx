@@ -1,8 +1,8 @@
 import React, {useEffect, useState} from 'react';
 import {Box, Text} from 'ink';
-import {GroupingResult} from '../types';
-import {executeOrganize} from '../utils/organizer';
-import {colors, boxStyles} from './styles';
+import {GroupingResult} from '../types.js';
+import {executeOrganize} from '../utils/organizer.js';
+import {colors, boxStyles} from './styles.js';
 
 interface ProgressProps {
   results: GroupingResult[];

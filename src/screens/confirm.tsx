@@ -1,8 +1,8 @@
 import React from 'react';
 import {Box, Text, useInput} from 'ink';
-import {GroupingResult} from '../types';
-import {colors} from './styles';
-import {getFileIcon} from '../utils/scanner';
+import {GroupingResult} from '../types.js';
+import {colors} from './styles.js';
+import {getFileIcon} from '../utils/scanner.js';
 
 interface ConfirmProps {
   results: GroupingResult[];

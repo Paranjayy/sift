@@ -1,6 +1,6 @@
 import * as fs from 'fs';
 import * as path from 'path';
-import { FileEntry, GroupingResult, GroupingMode, CustomRule } from '../types';
+import { FileEntry, GroupingResult, GroupingMode, CustomRule } from '../types.js';
 
 const SMART_CATEGORIES: Record<string, string[]> = {
   Screenshots: ['Screenshot', 'SCR-', 'Screen Shot'],

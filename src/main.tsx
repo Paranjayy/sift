@@ -1,6 +1,7 @@
+#!/usr/bin/env node
 import React from 'react';
 import {render} from 'ink';
-import {App} from './screens/app';
+import {App} from './screens/app.js';
 
 const args = process.argv.slice(2);
 
@@ -15,15 +16,18 @@ sift — Sift through the mess.
 
 Usage:
   sift [directory]    Organize a specific directory
+  sift --global       Organize multiple folders at once
   sift                Interactive folder picker
 
 Options:
+  -g, --global        Batch organize configured folders
   -v, --version       Show version
   -h, --help          Show help
   `);
   process.exit(0);
 }
 
-const initialFolder = args[0] || null;
+const isGlobal = args.includes('--global') || args.includes('-g');
+const initialFolder = isGlobal ? null : (args[0] || null);
 
-render(<App initialFolder={initialFolder} />);
+render(<App initialFolder={initialFolder} isGlobal={isGlobal} />);

@@ -2,12 +2,12 @@ import React from 'react';
 import {Box, Text, useInput, useApp} from 'ink';
 import {colors} from './styles.js';
 
-interface CompletedProps {
-  result: {moved: number; errors: string[]};
+interface GlobalCompletedProps {
+  result: {totalMoved: number; errors: string[]};
   onRestart: () => void;
 }
 
-export function Completed({result, onRestart}: CompletedProps) {
+export function GlobalCompleted({result, onRestart}: GlobalCompletedProps) {
   const {exit} = useApp();
 
   useInput((input) => {
@@ -25,17 +25,17 @@ export function Completed({result, onRestart}: CompletedProps) {
         borderColor={hasErrors ? colors.warning : colors.success}
         padding={2}
         gap={1}
-        width="50%"
+        width="60%"
       >
         <Box marginBottom={1}>
           <Text bold color={hasErrors ? colors.warning : colors.success}>
-            {hasErrors ? 'Completed with errors' : 'Organization Complete!'}
+            {hasErrors ? 'Global Organization Complete with errors' : 'Global Organization Complete!'}
           </Text>
         </Box>
 
         <Box flexDirection="column" gap={1}>
           <Text>
-            Files moved: <Text bold color={colors.accent}>{result.moved}</Text>
+            Total files moved: <Text bold color={colors.accent}>{result.totalMoved}</Text>
           </Text>
 
           {hasErrors && (
@@ -43,14 +43,14 @@ export function Completed({result, onRestart}: CompletedProps) {
               <Text color={colors.error}>
                 Errors ({result.errors.length}):
               </Text>
-              {result.errors.slice(0, 5).map((err, i) => (
+              {result.errors.slice(0, 8).map((err, i) => (
                 <Text key={i} color={colors.muted}>
                   {err}
                 </Text>
               ))}
-              {result.errors.length > 5 && (
+              {result.errors.length > 8 && (
                 <Text color={colors.muted}>
-                  ...and {result.errors.length - 5} more
+                  ...and {result.errors.length - 8} more
                 </Text>
               )}
             </Box>

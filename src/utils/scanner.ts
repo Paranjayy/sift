@@ -1,6 +1,6 @@
 import * as fs from 'fs';
 import * as path from 'path';
-import { FileEntry, OrganizeStats } from '../types';
+import { FileEntry, OrganizeStats } from '../types.js';
 
 export function getFileIcon(ext: string, isDir: boolean): string {
   if (isDir) return '📁';
