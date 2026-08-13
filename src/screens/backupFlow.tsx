@@ -4,11 +4,11 @@ import * as fs from 'fs';
 import * as path from 'path';
 import * as os from 'os';
 import {findGitRepos, inspectRepos, type RepoInfo} from '../utils/git.js';
-import {RepoSelect} from './repoSelect.js';
+import {RepoSelect, type BackupAction} from './repoSelect.js';
 import {colors} from './styles.js';
 
 interface BackupFlowProps {
-  runBackup: (selected: RepoInfo[]) => Promise<unknown>;
+  runBackup: (selected: RepoInfo[], action: BackupAction) => Promise<unknown>;
   onDone: (results: unknown) => void;
   onCancel: () => void;
 }
@@ -100,19 +100,24 @@ export function BackupFlow({runBackup, onDone, onCancel}: BackupFlowProps) {
   if (phase === 'scope') {
     return (
       <Box flexDirection="column" flexGrow={1} padding={1}>
-        <Box marginBottom={1}>
-          <Text bold color={colors.accent}>sift backup — where should we scan?</Text>
-        </Box>
-        {scopes.map((scope, i) => (
-          <Box key={scope.label} flexDirection="row" gap={1}>
-            <Text color={i === scopeIndex ? colors.accent : undefined}>
-              {i === scopeIndex ? '▸ ' : '  '}
-            </Text>
-            <Text color={i === scopeIndex ? colors.fg : colors.muted}>{scope.label}</Text>
+        <Box flexDirection="column" flexGrow={1} borderStyle="single" borderColor={colors.muted} paddingX={1}>
+          <Box marginBottom={1}>
+            <Text bold color={colors.accent}>sift backup — where should we scan?</Text>
           </Box>
-        ))}
-        <Box marginTop={1}>
-          <Text color={colors.muted}>j/k: move | Enter: pick | q: quit</Text>
+          {scopes.map((scope, i) => {
+            const label = scope.label.length > 60 ? scope.label.slice(0, 59) + '…' : scope.label;
+            return (
+              <Box key={scope.label} flexDirection="row" gap={1}>
+                <Text color={i === scopeIndex ? colors.accent : undefined}>
+                  {i === scopeIndex ? '▸ ' : '  '}
+                </Text>
+                <Text color={i === scopeIndex ? colors.fg : colors.muted}>{label}</Text>
+              </Box>
+            );
+          })}
+          <Box marginTop={1}>
+            <Text color={colors.muted}>j/k: move | Enter: pick | q: quit</Text>
+          </Box>
         </Box>
       </Box>
     );

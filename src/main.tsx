@@ -105,8 +105,8 @@ if (args.includes('backup')) {
     process.exit(0);
   };
 
-  const runAndPrint = async (selected: RepoInfo[]) => {
-    const results = await backupRepos(selected, opts);
+  const runAndPrint = async (selected: RepoInfo[], action: 'backup' | 'nuke' | 'prune' = 'backup') => {
+    const results = await backupRepos(selected, {...opts, nuke: action === 'nuke', nukeIgnored: action === 'prune'});
     printResults(results);
   };
 
@@ -133,7 +133,7 @@ if (args.includes('backup')) {
 
   const app = render(
     <BackupFlow
-      runBackup={(selected) => backupRepos(selected, opts)}
+      runBackup={(selected, action) => backupRepos(selected, {...opts, nuke: action === 'nuke', nukeIgnored: action === 'prune'})}
       onDone={(results) => {
         app.unmount();
         printResults(results as {repo: {name: string}; status: string; detail: string}[]);
