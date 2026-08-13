@@ -186,7 +186,11 @@ Options:
   process.exit(0);
 }
 
-const isGlobal = args.includes('--global') || args.includes('-g');
-const initialFolder = isGlobal ? null : (args[0] || null);
+const isCommand = args.includes('repos') || args.includes('backup') || args.includes('restore') || args.includes('--undo') || args.includes('--help') || args.includes('--version');
 
-render(<App initialFolder={initialFolder} isGlobal={isGlobal} />);
+if (!isCommand) {
+  const isGlobal = args.includes('--global') || args.includes('-g');
+  const initialFolder = isGlobal ? null : (args[0] || null);
+
+  render(<App initialFolder={initialFolder} isGlobal={isGlobal} />);
+}
