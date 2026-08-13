@@ -28,7 +28,8 @@ That's it — `sift` is now a global command.
 sift [directory]        Organize a specific directory
 sift --global           Batch organize configured folders
 sift repos              List all git repos + backup status
-sift backup             Interactive picker — choose repos to back up
+sift repos --everywhere Deep-scan all of home
+sift backup             Interactive — pick a scan scope, then choose repos
 sift backup <name>      Back up one repo
 sift backup --all       Back up every repo (also pushes existing remotes)
 sift backup --nuke      Back up, then Trash the whole repo (full snapshot first)
@@ -38,7 +39,7 @@ sift --undo             Restore the last organize
 sift                    Interactive folder browser
 ```
 
-`repos`/`backup` scan `~/Developer` by default (`--root <dir>` to change). Backups that can't reach GitHub (or when `--local`) go to `~/.config/sift/backups/`.
+`repos`/`backup` scan `~/Developer` by default (`--root <dir>` to change, `--everywhere` to deep-scan all of home). `sift backup` interactively asks where to scan (Developer / Home / Everywhere / custom path) before showing the repo picker. Backups that can't reach GitHub (or when `--local`) go to `~/.config/sift/backups/`.
 
 **Nuking is Trash-safe** — nothing is deleted forever. `--nuke` snapshots the whole repo to a tar first, `--nuke-ignored` archives untracked+ignored files first, then both move things to `~/.Trash`. `--github`/`--local` force the backup destination.
 

@@ -5,7 +5,7 @@ import * as fs from 'fs';
 import * as path from 'path';
 import * as os from 'os';
 import {App} from './screens/app.js';
-import {RepoSelect} from './screens/repoSelect.js';
+import {BackupFlow} from './screens/backupFlow.js';
 import {undoOrganize} from './utils/organizer.js';
 import {findGitRepos, inspectRepos, backupRepos, restoreFromBackup, listBackups, BACKUP_DIR, type RepoInfo} from './utils/git.js';
 
@@ -22,16 +22,19 @@ function flagValue(name: string): string | null {
   return args[index + 1];
 }
 
-function scanRoot(): string {
+function scanOptions(): {root: string; depth: number} {
   const explicit = flagValue('--root');
-  if (explicit) return explicit;
+  if (explicit) return {root: explicit, depth: 6};
+  if (args.includes('--everywhere') || args.includes('--deep')) {
+    return {root: os.homedir(), depth: 12};
+  }
   const dev = path.join(os.homedir(), 'Developer');
-  return fs.existsSync(dev) ? dev : os.homedir();
+  return {root: fs.existsSync(dev) ? dev : os.homedir(), depth: 6};
 }
 
 if (args.includes('repos')) {
-  const root = scanRoot();
-  const repoPaths = await findGitRepos(root);
+  const {root, depth} = scanOptions();
+  const repoPaths = await findGitRepos(root, depth);
   const repos = await inspectRepos(repoPaths);
 
   if (repos.length === 0) {
@@ -79,21 +82,11 @@ if (args.includes('restore')) {
 }
 
 if (args.includes('backup')) {
-  const root = scanRoot();
   const mode: 'auto' | 'github' | 'local' = args.includes('--github') ? 'github' : args.includes('--local') ? 'local' : 'auto';
   const all = args.includes('--all');
   const nuke = args.includes('--nuke');
   const nukeIgnored = args.includes('--nuke-ignored') || args.includes('--prune');
   const named = args.find((a) => !a.startsWith('-') && a !== 'backup');
-
-  console.log(`Scanning for repos under ${root}...`);
-  const repoPaths = await findGitRepos(root);
-  const repos = await inspectRepos(repoPaths);
-
-  if (repos.length === 0) {
-    console.log(`No git repos found under ${root}`);
-    process.exit(0);
-  }
 
   const opts = {mode, all, nuke, nukeIgnored};
 
@@ -118,6 +111,9 @@ if (args.includes('backup')) {
   };
 
   if (named) {
+    const {root, depth} = scanOptions();
+    console.log(`Scanning for repos under ${root}...`);
+    const repos = await inspectRepos(await findGitRepos(root, depth));
     const match = repos.filter((r) => r.name === named);
     if (match.length === 0) {
       console.log(`No repo named "${named}" found under ${root}`);
@@ -128,13 +124,15 @@ if (args.includes('backup')) {
   }
 
   if (all) {
+    const {root, depth} = scanOptions();
+    console.log(`Scanning for repos under ${root}...`);
+    const repos = await inspectRepos(await findGitRepos(root, depth));
     await runAndPrint(repos);
     process.exit(0);
   }
 
   const app = render(
-    <RepoSelect
-      repos={repos}
+    <BackupFlow
       runBackup={(selected) => backupRepos(selected, opts)}
       onDone={(results) => {
         app.unmount();
@@ -166,7 +164,8 @@ Usage:
   sift [directory]        Organize a specific directory
   sift --global           Organize multiple folders at once
   sift repos [--root dir] List git repos and backup status
-  sift backup             Interactive — pick repos to back up
+                          (--everywhere: deep-scan all of home)
+  sift backup             Interactive — pick scan scope, then repos to back up
   sift backup <name>      Back up a single repo
   sift backup --all       Back up every repo (also push existing remotes)
                           Flags: --github (force GitHub) | --local (bundles)

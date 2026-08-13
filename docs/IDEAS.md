@@ -22,6 +22,8 @@ Everything we want to build eventually. MVP first, then iterate. Nothing here is
   - Auto: create private GitHub repo via `gh` + push (done)
   - Fallback: bare-clone bundle into `~/.config/sift/backups/` (done)
 - Interactive multi-select TUI for choosing which repos to back up (done)
+- Scan scope picker: Developer / Home / Everywhere (deep) / custom path (done)
+- `sift repos --everywhere` deep-scans all of home (done)
 - `sift backup <name>` single repo, `--all` everything (done)
 - `--nuke` full snapshot tar + Trash the repo; `--nuke-ignored` archive + Trash ignored junk (done)
 - Next: schedule via launchd — `sift backup` on a cron/timer
