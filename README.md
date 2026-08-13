@@ -25,11 +25,18 @@ That's it — `sift` is now a global command.
 ## Usage
 
 ```bash
-sift [directory]    Organize a specific directory
-sift --global       Batch organize configured folders
-sift --undo         Restore the last organize
-sift                Interactive folder picker
+sift [directory]        Organize a specific directory
+sift --global           Batch organize configured folders
+sift repos              List all git repos + backup status
+sift backup             Back up repos missing a remote
+sift backup --all       Also push repos that already have remotes
+sift backup --github    Force GitHub creation (needs `gh` + auth)
+sift backup --local     Force local bare-clone bundles
+sift --undo             Restore the last organize
+sift                    Interactive folder browser
 ```
+
+`repos`/`backup` scan `~/Developer` by default (`--root <dir>` to change). Backups that can't reach GitHub (or when `--local`) go to `~/.config/sift/backups/`.
 
 Or run without installing:
 
@@ -39,10 +46,13 @@ npm run dev
 
 ## Features
 
+- **Full folder browser** — navigate the filesystem in the TUI (open/back/home/root, toggle hidden)
 - **4 grouping modes** — flat, by extension, smart categories, custom rules
 - **Live preview** — see before/after before any files move
 - **Safe by default** — never moves without confirmation
 - **Undo** — `sift --undo` restores the last organize
+- **Git repo inventory** — `sift repos` shows every repo, its remote, and whether it's backed up
+- **Git backup** — `sift backup` auto-creates private GitHub repos via `gh`, or bundles locally
 - **Batch mode** — `sift --global` organizes Downloads, Desktop, Documents at once
 - **Screenshot detection** — catches `Screenshot *` and `SCR-*` patterns
 - **Custom rules** — define your own grouping in `~/.config/sift/config.yaml`

@@ -4,6 +4,18 @@ Everything we want to build eventually. MVP first, then iterate. Nothing here is
 
 ---
 
+## Git Repo Backup (v1.3)
+
+- `sift repos` — inventory all git repos under a root: branch, dirty, ahead/behind, remote (done)
+- `sift backup` — back up repos missing a remote:
+  - Auto: create private GitHub repo via `gh` + push (done)
+  - Fallback: bare-clone bundle into `~/.config/sift/backups/` (done)
+- Next: `sift restore <repo>` — restore from a backup bundle
+- Next: schedule via launchd — `sift backup` on a cron/timer
+- Next: size-aware backup — skip huge repos, tar+archive large media separately
+
+---
+
 ## Screenshot Handling (v1.2)
 
 - Detect macOS screenshot naming: `Screenshot 2026-08-11 at 00.03.24.png`

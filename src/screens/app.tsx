@@ -286,8 +286,10 @@ export function App({initialFolder, isGlobal}: AppProps) {
               <Text bold color={colors.highlight}>Navigation</Text>
             </Box>
             <Text>j/k or ↑/↓ — Navigate</Text>
-            <Text>Enter — Select / Confirm</Text>
-            <Text>Tab — Switch panel</Text>
+            <Text>Enter or →/l — Open folder</Text>
+            <Text>←/h or Backspace — Go up</Text>
+            <Text>o — Organize current folder</Text>
+            <Text>~ — Home | / — Root | t — Toggle hidden</Text>
             <Box marginTop={1}>
               <Text bold color={colors.highlight}>Actions</Text>
             </Box>
@@ -321,7 +323,7 @@ export function App({initialFolder, isGlobal}: AppProps) {
         <Text color={colors.muted}>
           {(state.screen === 'preview' || state.screen === 'globalPreview') && '1/2/3: Mode | Enter: Confirm'}
           {(state.screen === 'confirm' || state.screen === 'globalConfirm') && 'y: Execute | b: Back'}
-          {state.screen === 'folderPicker' && 'Enter: Select | ~: Home'}
+          {state.screen === 'folderPicker' && 'Enter: Open | o: Organize | ~: Home | t: Hidden'}
         </Text>
       </Box>
     </Box>
