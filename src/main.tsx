@@ -8,6 +8,7 @@ import {App} from './screens/app.js';
 import {BackupFlow} from './screens/backupFlow.js';
 import {undoOrganize} from './utils/organizer.js';
 import {findGitRepos, inspectRepos, backupRepos, restoreFromBackup, listBackups, BACKUP_DIR, type RepoInfo} from './utils/git.js';
+import {analyzeDisk, renderDiskBar, formatSize} from './utils/disk.js';
 
 const args = process.argv.slice(2);
 
@@ -59,6 +60,36 @@ if (args.includes('repos')) {
   const unbacked = repos.filter((r) => !r.hasRemote);
   if (unbacked.length > 0) {
     console.log(`\n${unbacked.length} repo${unbacked.length === 1 ? '' : 's'} have no remote. Run \`sift backup\` to back them up.`);
+  }
+  process.exit(0);
+}
+
+if (args.includes('disk')) {
+  const target = args[1] || process.cwd();
+  const abs = path.resolve(target);
+  if (!fs.existsSync(abs)) {
+    console.log(`Directory does not exist: ${abs}`);
+    process.exit(1);
+  }
+  console.log(`Analyzing ${abs}…`);
+  const {items, totalSize} = await analyzeDisk(abs);
+  console.log(`\nTotal Size: ${formatSize(totalSize)}\n`);
+
+  const topItems = items.slice(0, 15);
+  if (topItems.length === 0) {
+    console.log('Empty directory.');
+    process.exit(0);
+  }
+
+  const nameW = Math.max(...topItems.map((r) => r.name.length), 4);
+
+  for (const item of topItems) {
+    const pct = totalSize > 0 ? (item.size / totalSize) * 100 : 0;
+    const bar = renderDiskBar(item.size, totalSize, 25);
+    const suffix = item.isDir ? '/' : '';
+    console.log(
+      `${(item.name + suffix).padEnd(nameW + 2)}  ${formatSize(item.size).padStart(9)}  ${bar}  ${pct.toFixed(0).padStart(3)}%`
+    );
   }
   process.exit(0);
 }
@@ -174,6 +205,7 @@ Usage:
                                  gitignored junk, keep source)
   sift restore <name>     Restore a repo from its local backup bundle
                           (optional dest, default: ./<name>)
+  sift disk [path]        Neodisk-style disk usage report of largest folders
   sift --undo             Restore the last organize
   sift                    Interactive folder picker
 
@@ -186,7 +218,7 @@ Options:
   process.exit(0);
 }
 
-const isCommand = args.includes('repos') || args.includes('backup') || args.includes('restore') || args.includes('--undo') || args.includes('--help') || args.includes('--version');
+const isCommand = args.includes('repos') || args.includes('backup') || args.includes('restore') || args.includes('disk') || args.includes('--undo') || args.includes('--help') || args.includes('--version');
 
 if (!isCommand) {
   const isGlobal = args.includes('--global') || args.includes('-g');

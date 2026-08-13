@@ -147,10 +147,11 @@ export async function isGhAuthenticated(): Promise<boolean> {
 async function backupWithGh(repo: RepoInfo): Promise<BackupResult> {
   const remoteUrl = `https://github.com/${repo.name}.git`;
   try {
-    await execFileAsync('gh', ['repo', 'create', repo.name, '--private', '--source', repo.path, '--remote', 'origin', '--push'], {timeout: 120000});
-    const branch = repo.branch === 'detached' ? 'HEAD' : repo.branch;
-    await execFileAsync('git', ['push', '-u', 'origin', branch], {cwd: repo.path, timeout: 120000});
-    return {repo, status: 'created', detail: remoteUrl};
+    const backupBranch = await captureWorkingState(repo);
+    await execFileAsync('gh', ['repo', 'create', repo.name, '--private', '--source', repo.path, '--remote', 'origin'], {timeout: 120000});
+    await pushAll(repo.path, backupBranch);
+    const detail = remoteUrl + (backupBranch ? ` (staged/untracked saved to ${backupBranch})` : '');
+    return {repo, status: 'created', detail};
   } catch (err) {
     return backupLocal(repo, `gh failed: ${(err as Error).message.slice(0, 80)}`);
   }
@@ -160,14 +161,72 @@ async function backupLocal(repo: RepoInfo, reason = ''): Promise<BackupResult> {
   await fs.promises.mkdir(BACKUP_DIR, {recursive: true});
   const bundleDir = path.join(BACKUP_DIR, `${repo.name}.git`);
   try {
+    const backupBranch = await captureWorkingState(repo);
     if (!fs.existsSync(bundleDir)) {
-      await execFileAsync('git', ['clone', '--bare', repo.path, bundleDir], {timeout: 180000});
+      await execFileAsync('git', ['clone', '--mirror', repo.path, bundleDir], {timeout: 180000});
     } else {
       await execFileAsync('git', ['--git-dir', bundleDir, 'remote', 'update', '--prune'], {timeout: 180000});
+    }
+    if (backupBranch) {
+      await runGit(repo.path, ['branch', '-D', backupBranch]);
     }
     return {repo, status: 'bundled', detail: bundleDir + (reason ? ` (${reason})` : '')};
   } catch (err) {
     return {repo, status: 'failed', detail: (err as Error).message.slice(0, 120)};
+  }
+}
+
+async function captureWorkingState(repo: RepoInfo): Promise<string | null> {
+  const hasCommits = await runGit(repo.path, ['rev-parse', '--verify', 'HEAD']);
+  const status = await runGit(repo.path, ['status', '--porcelain']);
+  if (!status.trim() && hasCommits) return null;
+
+  const ts = timestamp();
+  const branchName = `backup/auto-${ts}`;
+
+  if (!hasCommits) {
+    try {
+      await execFileAsync('git', ['add', '-A'], {cwd: repo.path});
+      await execFileAsync('git', ['commit', '-m', `sift auto-backup ${ts}`], {cwd: repo.path});
+      return branchName;
+    } catch {
+      return null;
+    }
+  }
+
+  let sha = await runGit(repo.path, ['stash', 'create', '-u']);
+  if (!sha) {
+    sha = await runGit(repo.path, ['stash', 'create']);
+  }
+  if (!sha) return null;
+
+  try {
+    await execFileAsync('git', ['branch', branchName, sha], {cwd: repo.path});
+    return branchName;
+  } catch {
+    return null;
+  }
+}
+
+async function pushAll(repoPath: string, backupBranch: string | null): Promise<void> {
+  const current = await runGit(repoPath, ['branch', '--show-current']) || 'HEAD';
+  
+  const push = async (args: string[]) => {
+    try {
+      await execFileAsync('git', ['push', ...args], {cwd: repoPath, timeout: 90000});
+    } catch {
+      await execFileAsync('git', ['push', '--force-with-lease', ...args], {cwd: repoPath, timeout: 90000});
+    }
+  };
+
+  if (current !== 'HEAD') {
+    await push(['-u', 'origin', current]);
+  }
+  await push(['origin', '--all']);
+  await push(['origin', '--tags']);
+
+  if (backupBranch) {
+    await runGit(repoPath, ['branch', '-D', backupBranch]);
   }
 }
 

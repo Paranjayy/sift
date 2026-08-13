@@ -26,8 +26,18 @@ Everything we want to build eventually. MVP first, then iterate. Nothing here is
 - `sift repos --everywhere` deep-scans all of home (done)
 - `sift backup <name>` single repo, `--all` everything (done)
 - `--nuke` full snapshot tar + Trash the repo; `--nuke-ignored` archive + Trash ignored junk (done)
+- Messy repos: auto-commit uncommitted state to backup branch via `git stash create -u`, push all branches+tags with force fallbacks (done)
 - Next: schedule via launchd — `sift backup` on a cron/timer
 - Next: size-aware backup — skip huge repos, tar+archive large media separately
+
+---
+
+## Disk Usage Analysis (v1.5)
+
+- `sift disk [path]` — Neodisk-style folder size report with visual bars (done)
+- Next: interactive disk space treemap/browser in the TUI (like neodisk/tkslucas/Neodisk)
+- Next: filter by size / date within the disk browser
+- Next: quick-action to nuke/archive folders directly from the size analyzer
 
 ---
 

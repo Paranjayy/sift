@@ -35,6 +35,7 @@ sift backup --all       Back up every repo (also pushes existing remotes)
 sift backup --nuke      Back up, then Trash the whole repo (full snapshot first)
 sift backup --nuke-ignored  Back up, then Trash gitignored junk (node_modules etc.)
 sift restore <name>     Restore a repo from its local backup bundle
+sift disk [path]        Neodisk-style folder size analysis with visual bars
 sift --undo             Restore the last organize
 sift                    Interactive folder browser
 ```
@@ -42,6 +43,8 @@ sift                    Interactive folder browser
 `repos`/`backup` scan `~/Developer` by default (`--root <dir>` to change, `--everywhere` to deep-scan all of home). `sift backup` interactively asks where to scan (Developer / Home / Everywhere / custom path) before showing the repo picker. Backups that can't reach GitHub (or when `--local`) go to `~/.config/sift/backups/`.
 
 **Nuking is Trash-safe** — nothing is deleted forever. `--nuke` snapshots the whole repo to a tar first, `--nuke-ignored` archives untracked+ignored files first, then both move things to `~/.Trash`. `--github`/`--local` force the backup destination.
+
+**Messy repos are fully backed up** — if a repo has uncommitted/staged/untracked changes, `sift` captures the working state safely using `git stash` to create a `backup/auto-<ts>` branch without touching your working tree. It pushes all branches + tags (with a fallback retry to `--force-with-lease` if needed) and uses mirror clones locally to preserve stashes.
 
 Or run without installing:
 
@@ -60,6 +63,7 @@ npm run dev
 - **Undo** — `sift --undo` restores the last organize
 - **Git repo inventory** — `sift repos` shows every repo, its remote, and whether it's backed up
 - **Git backup** — `sift backup` auto-creates private GitHub repos via `gh`, or bundles locally
+- **Disk size analysis** — `sift disk` reports directory sizes with visual bars (neodisk-style)
 - **Batch mode** — `sift --global` organizes Downloads, Desktop, Documents at once
 - **Screenshot detection** — catches `Screenshot *` and `SCR-*` patterns
 - **Custom rules** — define your own grouping in `~/.config/sift/config.yaml`
