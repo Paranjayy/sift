@@ -36,6 +36,7 @@ interface AppProps {
 
 export function App({initialFolder, isGlobal}: AppProps) {
   const {exit} = useApp();
+  const [searchActive, setSearchActive] = useState(false);
   const [state, setState] = useState<AppState>({
     screen: isGlobal ? 'globalPreview' : (initialFolder ? 'preview' : 'folderPicker'),
     selectedFolder: initialFolder || null,
@@ -152,6 +153,7 @@ export function App({initialFolder, isGlobal}: AppProps) {
   }, []);
 
   useInput((input, key) => {
+    if (searchActive) return;
     if (input === 'q' || (key.ctrl && input === 'c')) {
       exit();
     }
@@ -196,7 +198,7 @@ export function App({initialFolder, isGlobal}: AppProps) {
 
       <Box flexGrow={1}>
         {state.screen === 'folderPicker' && (
-          <FolderPicker onSelect={handleFolderSelect} config={state.config} />
+          <FolderPicker onSelect={handleFolderSelect} config={state.config} onSearchActive={setSearchActive} />
         )}
 
         {state.screen === 'preview' && state.selectedFolder && (
@@ -290,6 +292,7 @@ export function App({initialFolder, isGlobal}: AppProps) {
             <Text>←/h or Backspace — Go up</Text>
             <Text>o — Organize current folder</Text>
             <Text>~ — Home | / — Root | t — Toggle hidden</Text>
+            <Text>Ctrl+K or f — Quick folder search</Text>
             <Box marginTop={1}>
               <Text bold color={colors.highlight}>Actions</Text>
             </Box>

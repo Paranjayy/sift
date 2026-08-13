@@ -171,6 +171,38 @@ async function backupLocal(repo: RepoInfo, reason = ''): Promise<BackupResult> {
   }
 }
 
+export async function restoreFromBackup(name: string, dest: string): Promise<{ok: boolean; message: string}> {
+  const clean = name.endsWith('.git') ? name.slice(0, -4) : name;
+  const bundle = path.join(BACKUP_DIR, `${clean}.git`);
+
+  if (!fs.existsSync(bundle)) {
+    return {ok: false, message: `No local backup for "${clean}" at ${bundle}. Run \`sift backup\` first.`};
+  }
+
+  if (fs.existsSync(dest)) {
+    return {ok: false, message: `Destination already exists: ${dest}`};
+  }
+
+  try {
+    await execFileAsync('git', ['clone', bundle, dest], {timeout: 180000});
+    return {ok: true, message: `Restored ${clean} → ${dest}`};
+  } catch (err) {
+    return {ok: false, message: (err as Error).message.slice(0, 160)};
+  }
+}
+
+export async function listBackups(): Promise<string[]> {
+  try {
+    const entries = await fs.promises.readdir(BACKUP_DIR, {withFileTypes: true});
+    return entries
+      .filter((e) => e.isDirectory() && e.name.endsWith('.git'))
+      .map((e) => e.name.slice(0, -4))
+      .sort((a, b) => a.localeCompare(b));
+  } catch {
+    return [];
+  }
+}
+
 export async function backupRepos(
   repos: RepoInfo[],
   options: {mode: 'auto' | 'github' | 'local'; all: boolean}

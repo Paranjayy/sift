@@ -4,13 +4,24 @@ Everything we want to build eventually. MVP first, then iterate. Nothing here is
 
 ---
 
+## File Browser (v1.4)
+
+- Opens in current working directory by default (done)
+- Quick folder search overlay: `Ctrl+K`/`f`, fuzzy-jumps to subfolders (done)
+- Fast shallow stats — recursive scan was slow in huge dirs (done)
+- Next: persistent "recent folders" list on open
+- Next: rename/delete/duplicate file actions in the browser
+- Next: `s` to select a folder and add it to the organize queue without leaving the browser
+
+---
+
 ## Git Repo Backup (v1.3)
 
 - `sift repos` — inventory all git repos under a root: branch, dirty, ahead/behind, remote (done)
 - `sift backup` — back up repos missing a remote:
   - Auto: create private GitHub repo via `gh` + push (done)
   - Fallback: bare-clone bundle into `~/.config/sift/backups/` (done)
-- Next: `sift restore <repo>` — restore from a backup bundle
+- Next: `sift restore <repo>` — restore from a backup bundle (done)
 - Next: schedule via launchd — `sift backup` on a cron/timer
 - Next: size-aware backup — skip huge repos, tar+archive large media separately
 

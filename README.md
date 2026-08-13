@@ -32,6 +32,7 @@ sift backup             Back up repos missing a remote
 sift backup --all       Also push repos that already have remotes
 sift backup --github    Force GitHub creation (needs `gh` + auth)
 sift backup --local     Force local bare-clone bundles
+sift restore <name>     Restore a repo from its local backup bundle
 sift --undo             Restore the last organize
 sift                    Interactive folder browser
 ```
@@ -47,6 +48,8 @@ npm run dev
 ## Features
 
 - **Full folder browser** — navigate the filesystem in the TUI (open/back/home/root, toggle hidden)
+- **Quick folder search** — `Ctrl+K`/`f` fuzzy-jumps to any subfolder
+- **Opens where you are** — starts in your current directory
 - **4 grouping modes** — flat, by extension, smart categories, custom rules
 - **Live preview** — see before/after before any files move
 - **Safe by default** — never moves without confirmation
@@ -61,8 +64,14 @@ npm run dev
 
 | Key | Action |
 |-----|--------|
-| `j`/`k` | Navigate |
-| `Enter` | Select |
+| `j`/`k` or `↑`/`↓` | Navigate |
+| `Enter` or `→`/`l` | Open folder |
+| `←`/`h`/`Backspace` | Go up |
+| `o` | Organize current folder |
+| `Ctrl+K` or `f` | Quick folder search |
+| `~` | Home |
+| `/` | Filesystem root |
+| `t` | Toggle hidden files |
 | `1`/`2`/`3` | Switch mode |
 | `y` | Confirm |
 | `b` | Back |

@@ -6,7 +6,7 @@ import * as path from 'path';
 import * as os from 'os';
 import {App} from './screens/app.js';
 import {undoOrganize} from './utils/organizer.js';
-import {findGitRepos, inspectRepos, backupRepos, BACKUP_DIR} from './utils/git.js';
+import {findGitRepos, inspectRepos, backupRepos, restoreFromBackup, listBackups, BACKUP_DIR} from './utils/git.js';
 
 const args = process.argv.slice(2);
 
@@ -56,6 +56,24 @@ if (args.includes('repos')) {
   if (unbacked.length > 0) {
     console.log(`\n${unbacked.length} repo${unbacked.length === 1 ? '' : 's'} have no remote. Run \`sift backup\` to back them up.`);
   }
+  process.exit(0);
+}
+
+if (args.includes('restore')) {
+  const name = args[1];
+  if (!name) {
+    const backups = await listBackups();
+    if (backups.length === 0) {
+      console.log('No local backups found.');
+    } else {
+      console.log(`Usage: sift restore <name> [dest]\n\nLocal backups available:\n  ${backups.join('\n  ')}`);
+    }
+    process.exit(0);
+  }
+
+  const dest = args[2] || path.join(process.cwd(), name.endsWith('.git') ? name.slice(0, -4) : name);
+  const result = await restoreFromBackup(name, dest);
+  console.log(result.ok ? `✓ ${result.message}` : `✗ ${result.message}`);
   process.exit(0);
 }
 
@@ -119,6 +137,8 @@ Usage:
   sift repos [--root dir] List git repos and backup status
   sift backup [--all]     Back up repos missing a remote
                           (--github: force GitHub, --local: force bundles)
+  sift restore <name>     Restore a repo from its local backup bundle
+                          (optional dest, default: ./<name>)
   sift --undo             Restore the last organize
   sift                    Interactive folder picker
 
