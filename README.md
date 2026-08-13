@@ -11,13 +11,27 @@ A terminal file organizer built with TypeScript + Ink. Pick a folder, preview ho
 
 ## Install
 
+From source (builds automatically, then makes `sift` available globally):
+
 ```bash
 git clone https://github.com/Paranjayy/sift.git
 cd sift
 npm install
+npm link
 ```
 
+That's it — `sift` is now a global command.
+
 ## Usage
+
+```bash
+sift [directory]    Organize a specific directory
+sift --global       Batch organize configured folders
+sift --undo         Restore the last organize
+sift                Interactive folder picker
+```
+
+Or run without installing:
 
 ```bash
 npm run dev
@@ -28,6 +42,8 @@ npm run dev
 - **4 grouping modes** — flat, by extension, smart categories, custom rules
 - **Live preview** — see before/after before any files move
 - **Safe by default** — never moves without confirmation
+- **Undo** — `sift --undo` restores the last organize
+- **Batch mode** — `sift --global` organizes Downloads, Desktop, Documents at once
 - **Screenshot detection** — catches `Screenshot *` and `SCR-*` patterns
 - **Custom rules** — define your own grouping in `~/.config/sift/config.yaml`
 

@@ -1,6 +1,15 @@
 import * as fs from 'fs';
 import * as path from 'path';
+import * as os from 'os';
 import { FileEntry, GroupingResult, GroupingMode, CustomRule } from '../types.js';
+
+export interface MoveEntry {
+  from: string;
+  to: string;
+}
+
+const MANIFEST_DIR = path.join(os.homedir(), '.config', 'sift');
+const MANIFEST_FILE = path.join(MANIFEST_DIR, 'organize-manifest.json');
 
 const SMART_CATEGORIES: Record<string, string[]> = {
   Screenshots: ['Screenshot', 'SCR-', 'Screen Shot'],
@@ -160,10 +169,12 @@ function getSmartCategory(filename: string, ext: string): string {
 export async function executeOrganize(
   results: GroupingResult[],
   basePath: string,
-  onProgress?: (current: string, total: number, done: number) => void
-): Promise<{ moved: number; errors: string[] }> {
+  onProgress?: (current: string, total: number, done: number) => void,
+  persist = true
+): Promise<{ moved: number; errors: string[]; moves: MoveEntry[] }> {
   let moved = 0;
   const errors: string[] = [];
+  const moves: MoveEntry[] = [];
   const totalFiles = results.reduce((acc, r) => acc + r.files.length, 0);
 
   for (const group of results) {
@@ -172,7 +183,9 @@ export async function executeOrganize(
     for (const file of group.files) {
       try {
         const destPath = path.join(group.destination, file.name);
+        if (file.path === destPath) continue;
         await fs.promises.rename(file.path, destPath);
+        moves.push({ from: file.path, to: destPath });
         moved++;
         onProgress?.(file.name, totalFiles, moved);
       } catch (err) {
@@ -181,5 +194,60 @@ export async function executeOrganize(
     }
   }
 
-  return { moved, errors };
+  if (persist) {
+    await writeManifest(moves);
+  }
+  return { moved, errors, moves };
+}
+
+export async function writeManifest(moves: MoveEntry[]): Promise<void> {
+  await fs.promises.mkdir(MANIFEST_DIR, { recursive: true });
+  await fs.promises.writeFile(MANIFEST_FILE, JSON.stringify(moves, null, 2));
+}
+
+async function readManifest(): Promise<MoveEntry[]> {
+  try {
+    const raw = await fs.promises.readFile(MANIFEST_FILE, 'utf-8');
+    const parsed = JSON.parse(raw);
+    return Array.isArray(parsed) ? parsed : [];
+  } catch {
+    return [];
+  }
+}
+
+export async function undoOrganize(): Promise<{ restored: number; errors: string[] }> {
+  const entries = await readManifest();
+  if (entries.length === 0) {
+    return { restored: 0, errors: [] };
+  }
+
+  let restored = 0;
+  const errors: string[] = [];
+  const dirsToPrune = new Set<string>();
+
+  for (const entry of entries.reverse()) {
+    try {
+      if (!fs.existsSync(entry.to)) continue;
+      const destDir = path.dirname(entry.from);
+      if (!fs.existsSync(entry.from)) {
+        await fs.promises.mkdir(destDir, { recursive: true });
+      }
+      await fs.promises.rename(entry.to, entry.from);
+      dirsToPrune.add(path.dirname(entry.to));
+      restored++;
+    } catch (err) {
+      errors.push(`Failed to restore ${entry.to}: ${err}`);
+    }
+  }
+
+  for (const dir of dirsToPrune) {
+    try {
+      await fs.promises.rmdir(dir);
+    } catch {
+      /* not empty — leave it */
+    }
+  }
+
+  await fs.promises.rm(MANIFEST_FILE, { force: true });
+  return { restored, errors };
 }

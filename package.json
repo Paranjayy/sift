@@ -10,6 +10,7 @@
     "dev": "tsx src/main.tsx",
     "build": "tsc",
     "start": "node dist/main.js",
+    "postinstall": "tsc",
     "typecheck": "tsc --noEmit",
     "test": "echo \"no tests yet\""
   },

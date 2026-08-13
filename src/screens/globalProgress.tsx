@@ -1,7 +1,7 @@
 import React, {useEffect, useState} from 'react';
 import {Box, Text} from 'ink';
 import {FolderResult} from '../types.js';
-import {executeOrganize} from '../utils/organizer.js';
+import {executeOrganize, writeManifest} from '../utils/organizer.js';
 import {colors, boxStyles} from './styles.js';
 
 interface GlobalProgressProps {
@@ -26,6 +26,7 @@ export function GlobalProgress({folderResults, onComplete}: GlobalProgressProps)
     const run = async () => {
       let allErrors: string[] = [];
       let totalMoved = 0;
+      const allMoves = [];
 
       for (let i = 0; i < folderResults.length; i++) {
         const fr = folderResults[i];
@@ -34,14 +35,16 @@ export function GlobalProgress({folderResults, onComplete}: GlobalProgressProps)
         const result = await executeOrganize(fr.results, fr.folderPath, (fileName, _total, completed) => {
           setCurrentFile(fileName);
           setDone(totalMoved + completed);
-        });
+        }, false);
 
         totalMoved += result.moved;
+        allMoves.push(...result.moves);
         allErrors = [...allErrors, ...result.errors];
         setErrors(allErrors);
         setCompletedFolders(i + 1);
       }
 
+      await writeManifest(allMoves);
       onComplete({totalMoved, errors: allErrors});
     };
 
