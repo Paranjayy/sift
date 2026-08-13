@@ -5,8 +5,9 @@ import * as fs from 'fs';
 import * as path from 'path';
 import * as os from 'os';
 import {App} from './screens/app.js';
+import {RepoSelect} from './screens/repoSelect.js';
 import {undoOrganize} from './utils/organizer.js';
-import {findGitRepos, inspectRepos, backupRepos, restoreFromBackup, listBackups, BACKUP_DIR} from './utils/git.js';
+import {findGitRepos, inspectRepos, backupRepos, restoreFromBackup, listBackups, BACKUP_DIR, type RepoInfo} from './utils/git.js';
 
 const args = process.argv.slice(2);
 
@@ -79,8 +80,11 @@ if (args.includes('restore')) {
 
 if (args.includes('backup')) {
   const root = scanRoot();
-  const mode = args.includes('--github') ? 'github' : args.includes('--local') ? 'local' : 'auto';
+  const mode: 'auto' | 'github' | 'local' = args.includes('--github') ? 'github' : args.includes('--local') ? 'local' : 'auto';
   const all = args.includes('--all');
+  const nuke = args.includes('--nuke');
+  const nukeIgnored = args.includes('--nuke-ignored') || args.includes('--prune');
+  const named = args.find((a) => !a.startsWith('-') && a !== 'backup');
 
   console.log(`Scanning for repos under ${root}...`);
   const repoPaths = await findGitRepos(root);
@@ -91,27 +95,54 @@ if (args.includes('backup')) {
     process.exit(0);
   }
 
-  const toBackup = all ? repos : repos.filter((r) => !r.hasRemote);
-  if (toBackup.length === 0) {
-    console.log('All repos already have remotes. Use --all to push everything.');
+  const opts = {mode, all, nuke, nukeIgnored};
+
+  const printResults = (results: {repo: {name: string}; status: string; detail: string}[]) => {
+    let ok = 0;
+    console.log('');
+    for (const result of results) {
+      const mark = result.status === 'failed' ? '✗' : '✓';
+      if (result.status !== 'failed') ok++;
+      console.log(` ${mark} ${result.repo.name} — ${result.status} — ${result.detail}`);
+    }
+    console.log(`\n${ok}/${results.length} backed up.`);
+    if (mode !== 'local') {
+      console.log(`Local bundles (fallback): ${BACKUP_DIR}`);
+    }
+    process.exit(0);
+  };
+
+  const runAndPrint = async (selected: RepoInfo[]) => {
+    const results = await backupRepos(selected, opts);
+    printResults(results);
+  };
+
+  if (named) {
+    const match = repos.filter((r) => r.name === named);
+    if (match.length === 0) {
+      console.log(`No repo named "${named}" found under ${root}`);
+      process.exit(0);
+    }
+    await runAndPrint(match);
     process.exit(0);
   }
 
-  console.log(`Backing up ${toBackup.length} repo${toBackup.length === 1 ? '' : 's'} (mode: ${mode})...\n`);
-  const results = await backupRepos(toBackup, {mode, all});
-
-  let ok = 0;
-  for (const result of results) {
-    const mark = result.status === 'failed' ? '✗' : '✓';
-    if (result.status !== 'failed') ok++;
-    console.log(` ${mark} ${result.repo.name} — ${result.status} — ${result.detail}`);
+  if (all) {
+    await runAndPrint(repos);
+    process.exit(0);
   }
 
-  console.log(`\n${ok}/${results.length} backed up.`);
-  if (mode !== 'local') {
-    console.log(`Local bundles (fallback): ${BACKUP_DIR}`);
-  }
-  process.exit(0);
+  const app = render(
+    <RepoSelect
+      repos={repos}
+      runBackup={(selected) => backupRepos(selected, opts)}
+      onDone={(results) => {
+        app.unmount();
+        printResults(results as {repo: {name: string}; status: string; detail: string}[]);
+      }}
+      onCancel={() => process.exit(0)}
+    />
+  );
 }
 
 if (args.includes('--undo') || args.includes('-u')) {
@@ -135,8 +166,13 @@ Usage:
   sift [directory]        Organize a specific directory
   sift --global           Organize multiple folders at once
   sift repos [--root dir] List git repos and backup status
-  sift backup [--all]     Back up repos missing a remote
-                          (--github: force GitHub, --local: force bundles)
+  sift backup             Interactive — pick repos to back up
+  sift backup <name>      Back up a single repo
+  sift backup --all       Back up every repo (also push existing remotes)
+                          Flags: --github (force GitHub) | --local (bundles)
+                                 --nuke (snapshot + Trash the whole repo)
+                                 --nuke-ignored/--prune (archive + Trash
+                                 gitignored junk, keep source)
   sift restore <name>     Restore a repo from its local backup bundle
                           (optional dest, default: ./<name>)
   sift --undo             Restore the last organize

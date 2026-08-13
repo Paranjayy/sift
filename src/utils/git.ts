@@ -203,9 +203,74 @@ export async function listBackups(): Promise<string[]> {
   }
 }
 
+const TRASH_DIR = path.join(os.homedir(), '.Trash');
+
+export async function trashPath(absPath: string): Promise<string> {
+  await fs.promises.mkdir(TRASH_DIR, {recursive: true});
+  const base = path.basename(absPath);
+  let dest = path.join(TRASH_DIR, base);
+  let n = 1;
+  while (fs.existsSync(dest)) {
+    dest = path.join(TRASH_DIR, `${base}-${n++}`);
+  }
+  await fs.promises.rename(absPath, dest);
+  return dest;
+}
+
+function timestamp(): string {
+  return new Date().toISOString().replace(/[:.]/g, '-').slice(0, 19);
+}
+
+function quoteShell(s: string): string {
+  return `'${s.replace(/'/g, `'\\''`)}'`;
+}
+
+export async function snapshotRepo(repoPath: string): Promise<string> {
+  await fs.promises.mkdir(BACKUP_DIR, {recursive: true});
+  const name = path.basename(repoPath);
+  const out = path.join(BACKUP_DIR, `${name}-full-${timestamp()}.tar.gz`);
+  await execFileAsync('tar', ['-czf', out, '-C', path.dirname(repoPath), name], {timeout: 600000});
+  return out;
+}
+
+export async function archiveUntracked(repo: RepoInfo): Promise<string> {
+  await fs.promises.mkdir(BACKUP_DIR, {recursive: true});
+  const out = path.join(BACKUP_DIR, `${repo.name}-untracked-${timestamp()}.tar.gz`);
+  const script = `git -C ${quoteShell(repo.path)} ls-files -o -z | tar --null -T - -czf ${quoteShell(out)} -C ${quoteShell(repo.path)}`;
+  await execFileAsync('bash', ['-c', script], {timeout: 600000});
+  return out;
+}
+
+async function topLevelIgnored(repo: RepoInfo): Promise<string[]> {
+  const raw = await runGit(repo.path, ['status', '--porcelain', '--ignored']);
+  const top: string[] = [];
+  for (const line of raw.split('\n')) {
+    const match = line.match(/^!! (.+)$/);
+    if (!match) continue;
+    top.push(match[1].replace(/\/$/, ''));
+  }
+  return top;
+}
+
+export async function pruneIgnored(repo: RepoInfo): Promise<string[]> {
+  const top = await topLevelIgnored(repo);
+  const trashed: string[] = [];
+  for (const rel of top) {
+    try {
+      const full = path.join(repo.path, rel);
+      if (!fs.existsSync(full)) continue;
+      const dest = await trashPath(full);
+      trashed.push(`${rel} → ${dest}`);
+    } catch (err) {
+      trashed.push(`${rel} → failed: ${(err as Error).message.slice(0, 60)}`);
+    }
+  }
+  return trashed;
+}
+
 export async function backupRepos(
   repos: RepoInfo[],
-  options: {mode: 'auto' | 'github' | 'local'; all: boolean}
+  options: {mode: 'auto' | 'github' | 'local'; all: boolean; nuke?: boolean; nukeIgnored?: boolean}
 ): Promise<BackupResult[]> {
   const ghAvailable = options.mode !== 'local' && await isGhAuthenticated();
   const results: BackupResult[] = [];
@@ -225,11 +290,43 @@ export async function backupRepos(
       continue;
     }
 
+    let result: BackupResult;
     if (ghAvailable) {
-      results.push(await backupWithGh(repo));
+      result = await backupWithGh(repo);
     } else {
-      results.push(await backupLocal(repo));
+      result = await backupLocal(repo);
     }
+
+    if (result.status === 'failed') {
+      results.push(result);
+      continue;
+    }
+
+    if (options.nuke) {
+      try {
+        const snap = await snapshotRepo(repo.path);
+        const trash = await trashPath(repo.path);
+        results.push({...result, detail: `${result.detail} | snapshot: ${snap} | nuked → ${trash}`});
+        continue;
+      } catch (err) {
+        results.push({...result, status: 'failed', detail: `backup ok, nuke failed: ${(err as Error).message.slice(0, 100)}`});
+        continue;
+      }
+    }
+
+    if (options.nukeIgnored) {
+      try {
+        const archived = await archiveUntracked(repo);
+        const trashed = await pruneIgnored(repo);
+        results.push({...result, detail: `${result.detail} | archived: ${archived} | pruned: ${trashed.join(', ')}`});
+        continue;
+      } catch (err) {
+        results.push({...result, status: 'failed', detail: `backup ok, prune failed: ${(err as Error).message.slice(0, 100)}`});
+        continue;
+      }
+    }
+
+    results.push(result);
   }
 
   return results;
