@@ -1,11 +1,16 @@
 import * as fs from 'fs';
 import * as path from 'path';
+import {trashPath} from './git.js';
 
 export interface DiskItem {
   name: string;
   path: string;
   isDir: boolean;
   size: number;
+}
+
+export async function trashDiskItem(itemPath: string): Promise<string> {
+  return trashPath(itemPath);
 }
 
 async function getDirSize(dirPath: string): Promise<number> {

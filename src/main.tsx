@@ -6,6 +6,7 @@ import * as path from 'path';
 import * as os from 'os';
 import {App} from './screens/app.js';
 import {BackupFlow} from './screens/backupFlow.js';
+import {DiskBrowser} from './screens/diskBrowser.js';
 import {undoOrganize} from './utils/organizer.js';
 import {findGitRepos, inspectRepos, backupRepos, restoreFromBackup, listBackups, BACKUP_DIR, type RepoInfo} from './utils/git.js';
 import {analyzeDisk, renderDiskBar, formatSize} from './utils/disk.js';
@@ -71,27 +72,32 @@ if (args.includes('disk')) {
     console.log(`Directory does not exist: ${abs}`);
     process.exit(1);
   }
-  console.log(`Analyzing ${abs}…`);
-  const {items, totalSize} = await analyzeDisk(abs);
-  console.log(`\nTotal Size: ${formatSize(totalSize)}\n`);
 
-  const topItems = items.slice(0, 15);
-  if (topItems.length === 0) {
-    console.log('Empty directory.');
+  if (process.stdout.isTTY) {
+    render(<DiskBrowser initialPath={abs} onExit={() => process.exit(0)} />);
+  } else {
+    console.log(`Analyzing ${abs}…`);
+    const {items, totalSize} = await analyzeDisk(abs);
+    console.log(`\nTotal Size: ${formatSize(totalSize)}\n`);
+
+    const topItems = items.slice(0, 15);
+    if (topItems.length === 0) {
+      console.log('Empty directory.');
+      process.exit(0);
+    }
+
+    const nameW = Math.max(...topItems.map((r) => r.name.length), 4);
+
+    for (const item of topItems) {
+      const pct = totalSize > 0 ? (item.size / totalSize) * 100 : 0;
+      const bar = renderDiskBar(item.size, totalSize, 25);
+      const suffix = item.isDir ? '/' : '';
+      console.log(
+        `${(item.name + suffix).padEnd(nameW + 2)}  ${formatSize(item.size).padStart(9)}  ${bar}  ${pct.toFixed(0).padStart(3)}%`
+      );
+    }
     process.exit(0);
   }
-
-  const nameW = Math.max(...topItems.map((r) => r.name.length), 4);
-
-  for (const item of topItems) {
-    const pct = totalSize > 0 ? (item.size / totalSize) * 100 : 0;
-    const bar = renderDiskBar(item.size, totalSize, 25);
-    const suffix = item.isDir ? '/' : '';
-    console.log(
-      `${(item.name + suffix).padEnd(nameW + 2)}  ${formatSize(item.size).padStart(9)}  ${bar}  ${pct.toFixed(0).padStart(3)}%`
-    );
-  }
-  process.exit(0);
 }
 
 if (args.includes('restore')) {

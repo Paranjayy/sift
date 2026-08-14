@@ -35,9 +35,10 @@ Everything we want to build eventually. MVP first, then iterate. Nothing here is
 ## Disk Usage Analysis (v1.5)
 
 - `sift disk [path]` — Neodisk-style folder size report with visual bars (done)
-- Next: interactive disk space treemap/browser in the TUI (like neodisk/tkslucas/Neodisk)
+- Interactive disk space browser in the TUI (drill down with Enter/backspace) (done)
+- Move folders/files instantly to Trash via `d` confirmation within the size browser (done)
 - Next: filter by size / date within the disk browser
-- Next: quick-action to nuke/archive folders directly from the size analyzer
+- Next: quick-action to archive folders directly from the size analyzer
 
 ---
 

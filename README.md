@@ -35,7 +35,8 @@ sift backup --all       Back up every repo (also pushes existing remotes)
 sift backup --nuke      Back up, then Trash the whole repo (full snapshot first)
 sift backup --nuke-ignored  Back up, then Trash gitignored junk (node_modules etc.)
 sift restore <name>     Restore a repo from its local backup bundle
-sift disk [path]        Neodisk-style folder size analysis with visual bars
+sift disk [path]        Interactive size browser (Enter navigates subfolders,
+                        press `d` to Trash, visual bars)
 sift --undo             Restore the last organize
 sift                    Interactive folder browser
 ```
@@ -63,7 +64,7 @@ npm run dev
 - **Undo** — `sift --undo` restores the last organize
 - **Git repo inventory** — `sift repos` shows every repo, its remote, and whether it's backed up
 - **Git backup** — `sift backup` auto-creates private GitHub repos via `gh`, or bundles locally
-- **Disk size analysis** — `sift disk` reports directory sizes with visual bars (neodisk-style)
+- **Disk size browser** — `sift disk` launches an interactive TUI to drill down into folder sizes with visual bars, plus a `d` key to move folders instantly to `~/.Trash`. Falls back to a clean static report if piped or non-TTY.
 - **Batch mode** — `sift --global` organizes Downloads, Desktop, Documents at once
 - **Screenshot detection** — catches `Screenshot *` and `SCR-*` patterns
 - **Custom rules** — define your own grouping in `~/.config/sift/config.yaml`
