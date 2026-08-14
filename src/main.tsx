@@ -10,6 +10,7 @@ import {DiskBrowser} from './screens/diskBrowser.js';
 import {undoOrganize} from './utils/organizer.js';
 import {findGitRepos, inspectRepos, backupRepos, restoreFromBackup, listBackups, BACKUP_DIR, type RepoInfo} from './utils/git.js';
 import {analyzeDisk, renderDiskBar, formatSize} from './utils/disk.js';
+import {createMarkdownCatalog} from './utils/catalog.js';
 
 const args = process.argv.slice(2);
 
@@ -61,6 +62,37 @@ if (args.includes('repos')) {
   const unbacked = repos.filter((r) => !r.hasRemote);
   if (unbacked.length > 0) {
     console.log(`\n${unbacked.length} repo${unbacked.length === 1 ? '' : 's'} have no remote. Run \`sift backup\` to back them up.`);
+  }
+  process.exit(0);
+}
+
+if (args.includes('catalog')) {
+  const target = args.find((a) => !a.startsWith('-') && a !== 'catalog');
+  const dirPath = target ? path.resolve(target) : process.cwd();
+
+  if (!fs.existsSync(dirPath)) {
+    console.log(`Directory does not exist: ${dirPath}`);
+    process.exit(1);
+  }
+
+  const explicitDepth = flagValue('--depth');
+  const depth = explicitDepth ? parseInt(explicitDepth, 10) : 5;
+
+  const folderName = path.basename(dirPath) || 'root';
+  const defaultFile = `sift-catalog-${folderName}.md`;
+  const explicitOut = flagValue('--out') || flagValue('-o');
+  const outFile = explicitOut ? path.resolve(explicitOut) : path.join(process.cwd(), defaultFile);
+
+  console.log(`Generating catalog for ${dirPath} (depth: ${depth})…`);
+  const {markdown, totalSize, itemsCount} = await createMarkdownCatalog(dirPath, depth);
+
+  try {
+    await fs.promises.writeFile(outFile, markdown, 'utf-8');
+    console.log(`✓ Catalog created: ${outFile}`);
+    console.log(`  Items logged: ${itemsCount} | Total Size: ${formatSize(totalSize)}`);
+  } catch (err) {
+    console.error(`✗ Failed to write catalog: ${(err as Error).message}`);
+    process.exit(1);
   }
   process.exit(0);
 }
@@ -211,7 +243,10 @@ Usage:
                                  gitignored junk, keep source)
   sift restore <name>     Restore a repo from its local backup bundle
                           (optional dest, default: ./<name>)
-  sift disk [path]        Neodisk-style disk usage report of largest folders
+  sift disk [path]        Interactive size browser (Enter navigates subfolders,
+                          press 'd' to Trash, visual bars)
+  sift catalog [path]     Create recursive Markdown file index of all contents
+                          (--out file.md, --depth N)
   sift --undo             Restore the last organize
   sift                    Interactive folder picker
 
@@ -224,7 +259,7 @@ Options:
   process.exit(0);
 }
 
-const isCommand = args.includes('repos') || args.includes('backup') || args.includes('restore') || args.includes('disk') || args.includes('--undo') || args.includes('--help') || args.includes('--version');
+const isCommand = args.includes('repos') || args.includes('backup') || args.includes('restore') || args.includes('disk') || args.includes('catalog') || args.includes('--undo') || args.includes('--help') || args.includes('--version');
 
 if (!isCommand) {
   const isGlobal = args.includes('--global') || args.includes('-g');

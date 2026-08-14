@@ -37,6 +37,8 @@ sift backup --nuke-ignored  Back up, then Trash gitignored junk (node_modules et
 sift restore <name>     Restore a repo from its local backup bundle
 sift disk [path]        Interactive size browser (Enter navigates subfolders,
                         press `d` to Trash, visual bars)
+sift catalog [path]     Create recursive Markdown catalog/index of all files
+                        (--out file.md, --depth N)
 sift --undo             Restore the last organize
 sift                    Interactive folder browser
 ```
@@ -65,6 +67,7 @@ npm run dev
 - **Git repo inventory** — `sift repos` shows every repo, its remote, and whether it's backed up
 - **Git backup** — `sift backup` auto-creates private GitHub repos via `gh`, or bundles locally
 - **Disk size browser** — `sift disk` launches an interactive TUI to drill down into folder sizes with visual bars, plus a `d` key to move folders instantly to `~/.Trash`. Falls back to a clean static report if piped or non-TTY.
+- **Directory catalog maker** — `sift catalog` generates a recursive, beautifully formatted Markdown snapshot (`.md` index) of any drive or directory, including sizes, entries, and filetype icons. Helpful for archiving offline/long-term projects.
 - **Batch mode** — `sift --global` organizes Downloads, Desktop, Documents at once
 - **Screenshot detection** — catches `Screenshot *` and `SCR-*` patterns
 - **Custom rules** — define your own grouping in `~/.config/sift/config.yaml`
